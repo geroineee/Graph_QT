@@ -4,6 +4,11 @@
 #include <QGraphicsItem>
 #include <QPainter>
 
+#include <QDebug>
+
+#include <QGraphicsItem>
+#include <QGraphicsSceneMouseEvent>
+
 class Node : public QGraphicsItem
 {
 public:
@@ -12,6 +17,7 @@ public:
         m_index = index;
         m_position = position;
         m_data = data;
+        setFlag(ItemIsMovable); // Устанавливаем флаг, позволяющий перемещать узлы
     }
 
     QRectF boundingRect() const override
@@ -26,10 +32,29 @@ public:
         painter->drawText(-10, 10, m_data);
     }
 
+
+    // перемещение узла по зажатию ЛКМ
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mouseMoveEvent(event);
+    }
+
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mousePressEvent(event);
+    }
+
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mouseReleaseEvent(event);
+    }
+
+
+
 private:
     int m_index;
     QPointF m_position;
     QString m_data;
-};
 
+};
 #endif // NODE_H

@@ -5,7 +5,7 @@
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QPainter>
-#include <QVector>
+
 #include <QTime>
 
 #include <QDebug>
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     view.show();
 
-    // Создание матрицы смежности (пример)
+    // Создание матрицы смежности
     QVector<QVector<int>> adjacencyMatrix =
     {
         {0, 0, 0, 1},
