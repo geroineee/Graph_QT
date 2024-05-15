@@ -11,50 +11,48 @@
 
 class Node : public QGraphicsItem
 {
+
+signals:
+    void nodePressed(int index); // Объявление сигнала
+
+
 public:
-    Node(int index, QPointF position, QString data)
+    Node(int index, QPointF position, QString data, int size)
     {
         m_index = index;
         m_position = position;
         m_data = data;
+        m_size = size;
         setFlag(ItemIsMovable); // Устанавливаем флаг, позволяющий перемещать узлы
     }
 
     QRectF boundingRect() const override
     {
-        return QRectF(-20, -20, 40, 40); // Размеры узла
+        return QRectF(-m_size/2, -m_size/2, m_size, m_size); // Размеры узла
     }
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
     {
         painter->setBrush(Qt::white);
-        painter->drawEllipse(-20, -20, 40, 40);
+        painter->drawEllipse(-m_size/2, -m_size/2, m_size, m_size);
         painter->drawText(-10, 10, m_data);
     }
 
-
     // перемещение узла по зажатию ЛКМ
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override
-    {
-        QGraphicsItem::mouseMoveEvent(event);
-    }
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override
-    {
-        QGraphicsItem::mousePressEvent(event);
-    }
-
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
-    {
-        QGraphicsItem::mouseReleaseEvent(event);
-    }
+    // нажатие ЛКМ
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
 
 
+    // отжатие ЛКМ
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
-    int m_index;
-    QPointF m_position;
+    int m_index; // индекс узла
+    int m_size; // размер окружности узла
+    QPointF m_position; // позиция узла
     QString m_data;
-
 };
+
 #endif // NODE_H

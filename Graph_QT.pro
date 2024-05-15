@@ -11,7 +11,8 @@ CONFIG += c++11
 SOURCES += \
     graph.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    node.cpp
 
 HEADERS += \
     Node.h \

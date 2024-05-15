@@ -3,6 +3,20 @@
 
 #include <QMainWindow>
 
+
+#include <QPainter>
+
+#include <QTime>
+
+#include <QDebug>
+
+#include "Node.h"
+#include "graph.h"
+
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QGraphicsItem>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -21,8 +35,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-
-
+    Graph *graph;
+    QGraphicsView *scene_view;
+    QGraphicsScene *scene;
 
 };
 #endif // MAINWINDOW_H
