@@ -2,7 +2,6 @@
 #define NODE_H
 
 
-
 #include <QGraphicsItem>
 #include <QPainter>
 
@@ -18,7 +17,7 @@ class Node : public QObject, public QGraphicsItem
 Q_OBJECT
 
 signals:
-    void nodePressed(int index); // Объявление сигнала
+    void nodePressed(int index); // Объявление сигнала нажатия на узел
 
 
 public:
@@ -28,6 +27,7 @@ public:
         m_position = position;
         m_data = data;
         m_size = size;
+
         setFlag(ItemIsMovable); // Устанавливаем флаг, позволяющий перемещать узлы
     }
 
@@ -48,11 +48,11 @@ public:
     {
         QGraphicsItem::mouseMoveEvent(event);
 
-        QPointF move = event->scenePos() - event->lastScenePos(); // Получаем вектор перемещения мыши
+        QPointF move = event->scenePos() - event->lastScenePos();
+        m_position += move;
 
-        m_position += move; // Смещаем центр узла на вектор перемещения
+        update();
     }
-
 
     // нажатие ЛКМ
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override
@@ -73,21 +73,19 @@ public:
         update();
     }
 
-
-
     // отжатие ЛКМ
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
     {
         QGraphicsItem::mouseReleaseEvent(event);
     }
 
+    QBrush m_brush;
 private:
-    int m_index; // индекс узла
+    int m_index; // индекс узла (для матрицы смежности)
     int m_size; // размер окружности узла
     QPointF m_position; // позиция узла
     QString m_data;
 
-    QBrush m_brush;
 };
 
 #endif // NODE_H

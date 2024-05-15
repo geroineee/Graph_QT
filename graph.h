@@ -12,7 +12,15 @@ class Graph : public QObject
 Q_OBJECT
 
 public:
-    Graph(){};
+    Graph(QGraphicsScene *new_scene)
+    {
+        scene = new_scene;
+    };
+
+    int getSelectedNodeIndex() const
+    {
+        return selectedNodeIndex;
+    }
 
 private:
     // Создание матрицы смежности
@@ -23,6 +31,12 @@ private:
 
     // индекс выделенного узла
     int selectedNodeIndex = -1;
+
+    QGraphicsScene *scene;
+
+public:
+    bool needToLink = false;
+
 
 public:
     // отрисовка узлов
@@ -45,6 +59,8 @@ public:
                 {
                     QPointF sourcePos = nodes[i]->scenePos();
                     QPointF destPos = nodes[j]->scenePos();
+                    qDebug() << sourcePos << "\n"<<  destPos;
+                    scene->clear();
                     scene->addLine(sourcePos.x(), sourcePos.y(), destPos.x(), destPos.y());
                 }
             }
@@ -73,10 +89,24 @@ public:
         adjacencyMatrix.append(newRow);
     }
 
+
 public slots:
     // обработка сигнала нажатия на узел
     void handleNodePressed(int index)
     {
+        if (!needToLink)
+        {
+            // Очистка цвета узлов
+            for (Node *node : nodes)
+            {
+                 QBrush brush(Qt::white);
+                node->m_brush = brush;
+                node->update();
+            }
+            updateLinks();
+            return;
+        }
+
         // Проверяем, есть ли уже выделенный узел
         if (selectedNodeIndex != -1)
         {
@@ -84,15 +114,35 @@ public slots:
             adjacencyMatrix[selectedNodeIndex][index] = 1;
             adjacencyMatrix[index][selectedNodeIndex] = 1;
 
+            // Очистка цвета узлов
+
+            for (Node *node : nodes)
+            {
+                QBrush brush(Qt::white);
+                node->m_brush = brush;
+                node->update();
+            }
+
             // Обновляем состояние выделенного узла
             selectedNodeIndex = -1;
 
+            // Убираем флаг на добавление узла
+            needToLink = false;
+
+            // отрисовка связей
+            updateLinks();
         }
         else
         {
             // Сохраняем индекс нажатого узла
             selectedNodeIndex = index;
         }
+    }
+
+    // Сигнал обновления связей
+    void updateLinks()
+    {
+        drawLinks(scene);
     }
 };
 

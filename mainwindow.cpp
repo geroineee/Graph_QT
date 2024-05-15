@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
 
     // создание графа
-    graph = new Graph;
+    graph = new Graph(scene);
     // создание сцены
     scene = new QGraphicsScene;
     ui->graphicsView->setScene(scene);
@@ -24,5 +24,11 @@ void MainWindow::on_draw_button_clicked()
 
     graph->drawNodes(scene);
     graph->drawLinks(scene);
+}
+
+
+void MainWindow::on_pushButton_clicked()
+{
+    graph->needToLink = true;
 }
 

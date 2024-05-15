@@ -17,10 +17,10 @@
    <widget class="QGraphicsView" name="graphicsView">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>60</y>
-      <width>441</width>
-      <height>451</height>
+      <x>270</x>
+      <y>20</y>
+      <width>500</width>
+      <height>500</height>
      </rect>
     </property>
    </widget>
@@ -34,7 +34,20 @@
      </rect>
     </property>
     <property name="text">
-     <string>Нарисовать</string>
+     <string>Добавить узел</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>140</y>
+      <width>181</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Добавить связь</string>
     </property>
    </widget>
   </widget>
