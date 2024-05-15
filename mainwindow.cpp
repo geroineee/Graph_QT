@@ -24,6 +24,5 @@ void MainWindow::on_draw_button_clicked()
 
     graph->drawNodes(scene);
     graph->drawLinks(scene);
-
 }
 

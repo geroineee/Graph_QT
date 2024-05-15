@@ -8,8 +8,11 @@
 
 class Graph : public QObject
 {
+
+Q_OBJECT
+
 public:
-    Graph();
+    Graph(){};
 
 private:
     // Создание матрицы смежности
@@ -57,7 +60,7 @@ public:
         node->setPos(position);
         nodes.append(node);
 
-        //connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
+        connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
 
         qDebug()  << "Начальная позиция: " << position;
 
@@ -83,6 +86,7 @@ public slots:
 
             // Обновляем состояние выделенного узла
             selectedNodeIndex = -1;
+
         }
         else
         {

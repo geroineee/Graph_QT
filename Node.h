@@ -1,16 +1,21 @@
 #ifndef NODE_H
 #define NODE_H
 
+
+
 #include <QGraphicsItem>
 #include <QPainter>
 
 #include <QDebug>
 
+
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 
-class Node : public QGraphicsItem
+class Node : public QObject, public QGraphicsItem
 {
+
+Q_OBJECT
 
 signals:
     void nodePressed(int index); // Объявление сигнала
@@ -33,26 +38,56 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
     {
-        painter->setBrush(Qt::white);
+        painter->setBrush(m_brush);
         painter->drawEllipse(-m_size/2, -m_size/2, m_size, m_size);
         painter->drawText(-10, 10, m_data);
     }
 
     // перемещение узла по зажатию ЛКМ
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mouseMoveEvent(event);
+
+        QPointF move = event->scenePos() - event->lastScenePos(); // Получаем вектор перемещения мыши
+
+        m_position += move; // Смещаем центр узла на вектор перемещения
+    }
+
 
     // нажатие ЛКМ
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mousePressEvent(event);
+
+        // Выделяем узел синим цветом
+        QBrush brush(Qt::blue);
+        m_brush = brush; // Сохраняем кисть для использования в методе paint
+
+        // Сохраняем индекс узла, на который нажали
+        int pressedIndex = m_index;
+
+        // Отправляем сигнал с индексом нажатого узла
+        emit nodePressed(pressedIndex); // Используем emit для вызова сигнала
+
+        // Запрашиваем перерисовку элемента
+        update();
+    }
+
 
 
     // отжатие ЛКМ
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mouseReleaseEvent(event);
+    }
 
 private:
     int m_index; // индекс узла
     int m_size; // размер окружности узла
     QPointF m_position; // позиция узла
     QString m_data;
+
+    QBrush m_brush;
 };
 
 #endif // NODE_H
