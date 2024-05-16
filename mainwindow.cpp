@@ -10,6 +10,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // создание сцены
     scene = new QGraphicsScene;
     ui->graphicsView->setScene(scene);
+
+    // обновить
+    connect(ui->clear_button, &QPushButton::clicked, graph, &Graph::clearScene);
 }
 
 MainWindow::~MainWindow()
@@ -23,12 +26,17 @@ void MainWindow::on_draw_button_clicked()
     qDebug() << "Нажал.";
 
     graph->drawNodes(scene);
-    graph->drawLinks(scene);
 }
 
 
 void MainWindow::on_pushButton_clicked()
 {
     graph->needToLink = true;
+}
+
+
+void MainWindow::on_clear_button_clicked()
+{
+    qDebug() << "refresh but";
 }
 

@@ -21,6 +21,8 @@ signals:
 
 
 public:
+
+
     Node(int index, QPointF position, QString data, int size)
     {
         m_index = index;

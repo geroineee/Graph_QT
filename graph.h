@@ -4,6 +4,8 @@
 #include <QVector>
 #include <QGraphicsScene>
 
+#include <QTimer>
+
 #include "Node.h"
 
 class Graph : public QObject
@@ -50,22 +52,22 @@ public:
 
     // отрисовка связей
     void drawLinks(QGraphicsScene *scene)
-    {
-        for (int i = 0; i < adjacencyMatrix.size(); ++i)
         {
-            for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
+            for (int i = 0; i < adjacencyMatrix.size(); ++i)
             {
-                if (adjacencyMatrix[i][j] > 0)
+                for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
                 {
-                    QPointF sourcePos = nodes[i]->scenePos();
-                    QPointF destPos = nodes[j]->scenePos();
-                    qDebug() << sourcePos << "\n"<<  destPos;
-                    scene->clear();
-                    scene->addLine(sourcePos.x(), sourcePos.y(), destPos.x(), destPos.y());
+                    if (adjacencyMatrix[i][j] > 0)
+                    {
+                        QPointF sourcePos = nodes[i]->scenePos();
+                        QPointF destPos = nodes[j]->scenePos();
+                        qDebug() << sourcePos << "\n"<<  destPos;
+                        QTimer::singleShot(0, this, SLOT(clearScene()));
+                        scene->addLine(sourcePos.x(), sourcePos.y(), destPos.x(), destPos.y());
+                    }
                 }
             }
         }
-    }
 
     // добавление узла (рандомно)
     void addNode()
@@ -139,7 +141,23 @@ public slots:
         }
     }
 
-    // Сигнал обновления связей
+    // очистка сцены
+    void clearScene()
+    {
+        // Удаляем все узлы из вектора nodes
+        for (Node* node : nodes)
+        {
+            QGraphicsScene* this_scene = node->scene();
+            this_scene->removeItem(node); // Удаляем узел из сцены
+            delete node; // Освобождаем память, выделенную под узел
+        }
+        nodes.clear(); // Очищаем вектор nodes
+
+        // Очищаем сцену
+//        scene->clear();
+    }
+
+    // обновление связей
     void updateLinks()
     {
         drawLinks(scene);
