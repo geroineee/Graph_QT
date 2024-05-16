@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include <QItemDelegate>
+
 
 #include <QPainter>
 
@@ -16,6 +18,9 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsItem>
+
+#include <QStandardItemModel>
+#include <QTableView>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -36,12 +41,34 @@ private slots:
 
     void on_clear_button_clicked();
 
+    // отрисовка матрицы
+    void updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix);
+
+    // отрисовка изменений в матрице
+    void onMatrixCellChanged(const QModelIndex &index);
+
 private:
     Ui::MainWindow *ui;
 
     Graph *graph;
-    QGraphicsView *scene_view;
+
+    // Сцена для отрисовки
     QGraphicsScene *scene;
 
+    QStandardItemModel *matrixModel; // Модель для отображения матрицы смежности
+
+};
+
+class CenterTextDelegate : public QItemDelegate
+{
+public:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        QStyleOptionViewItem opt = option;
+
+        opt.displayAlignment = Qt::AlignCenter;
+
+        QItemDelegate::paint(painter, opt, index);
+    }
 };
 #endif // MAINWINDOW_H

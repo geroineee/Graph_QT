@@ -16,6 +16,7 @@ SOURCES += \
 
 HEADERS += \
     Node.h \
+    arrow.h \
     graph.h \
     mainwindow.h
 

@@ -8,16 +8,27 @@
 
 #include "Node.h"
 
+#include "arrow.h"
+
 class Graph : public QObject
 {
 
 Q_OBJECT
 
+signals:
+    void adjacencyMatrixChanged(const QVector<QVector<int>>& adjacencyMatrix);
+
 public:
     Graph(QGraphicsScene *new_scene)
     {
         scene = new_scene;
-    };
+
+        // Создаем новый слой для связей
+        linkLayer = new QGraphicsItemGroup();
+
+        // Добавляем его на сцену
+        scene->addItem(linkLayer);
+    }
 
     int getSelectedNodeIndex() const
     {
@@ -34,40 +45,58 @@ private:
     // индекс выделенного узла
     int selectedNodeIndex = -1;
 
+    // сцена для отрисовки
     QGraphicsScene *scene;
 
+    // Новый слой для связей
+    QGraphicsItemGroup* linkLayer;
+
 public:
+    // флаг для добавления новых связей между узлами
     bool needToLink = false;
+
+    QVector<QVector<int>>& getMatrix() {return adjacencyMatrix;}
 
 
 public:
     // отрисовка узлов
-    void drawNodes(QGraphicsScene *scene)
+    void drawNodes()
     {
         for (int i = 0; i < nodes.size(); ++i)
         {
-            scene->addItem(nodes[i]);
+            if (nodes[i]->scene() != scene)
+            {
+                scene->addItem(nodes[i]);
+            }
         }
     }
 
     // отрисовка связей
-    void drawLinks(QGraphicsScene *scene)
-        {
-            for (int i = 0; i < adjacencyMatrix.size(); ++i)
-            {
-                for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
-                {
-                    if (adjacencyMatrix[i][j] > 0)
-                    {
-                        QPointF sourcePos = nodes[i]->scenePos();
-                        QPointF destPos = nodes[j]->scenePos();
-                        qDebug() << sourcePos << "\n"<<  destPos;
-                        QTimer::singleShot(0, this, SLOT(clearScene()));
-                        scene->addLine(sourcePos.x(), sourcePos.y(), destPos.x(), destPos.y());
-                    }
-                }
-            }
-        }
+    void drawLinks()
+       {
+           // Удаляем все связи из слоя
+           clearLinks();
+
+           for (int i = 0; i < adjacencyMatrix.size(); ++i)
+           {
+               for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
+               {
+                   if (adjacencyMatrix[i][j] > 0)
+                   {
+                       QPointF sourcePos = nodes[i]->scenePos();
+                       QPointF destPos = nodes[j]->scenePos();
+
+                       // Добавление новой связи на слой
+                       QGraphicsLineItem* link = scene->addLine(sourcePos.x(), sourcePos.y(), destPos.x(), destPos.y());
+                       linkLayer->addToGroup(link);
+
+                       // Добавление стрелки на слой
+                       Arrow* arrow = new Arrow(nodes[i], nodes[j]);
+                       linkLayer->addToGroup(arrow);
+                   }
+               }
+           }
+       }
 
     // добавление узла (рандомно)
     void addNode()
@@ -78,9 +107,11 @@ public:
         node->setPos(position);
         nodes.append(node);
 
+        // нажатие на узел
         connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
 
-        qDebug()  << "Начальная позиция: " << position;
+        // перемещение узла
+        connect(node, &Node::updateLinksSignal, this, &Graph::handleUpdateLinksSignal);
 
         // Добавляем новую строку и столбец в матрицу смежности
         for (int i = 0; i < nodes.size() - 1; ++i)
@@ -89,6 +120,21 @@ public:
         }
         QVector<int> newRow(nodes.size(), 0);
         adjacencyMatrix.append(newRow);
+
+        // Отправляем сигнал об изменении матрицы смежности
+        emit adjacencyMatrixChanged(adjacencyMatrix);
+    }
+
+    // очистка всех связей
+    void clearLinks()
+    {
+        QList<QGraphicsItem*> items = linkLayer->childItems();
+
+        foreach (QGraphicsItem *item, items)
+        {
+            linkLayer->removeFromGroup(item);
+            delete item;
+        }
     }
 
 
@@ -105,7 +151,6 @@ public slots:
                 node->m_brush = brush;
                 node->update();
             }
-            updateLinks();
             return;
         }
 
@@ -132,13 +177,16 @@ public slots:
             needToLink = false;
 
             // отрисовка связей
-            updateLinks();
-        }
-        else
-        {
-            // Сохраняем индекс нажатого узла
-            selectedNodeIndex = index;
-        }
+            drawLinks();
+            }
+            else
+            {
+                // Сохраняем индекс нажатого узла
+                selectedNodeIndex = index;
+            }
+
+        // Отправляем сигнал об изменении матрицы смежности
+        emit adjacencyMatrixChanged(adjacencyMatrix);
     }
 
     // очистка сцены
@@ -151,17 +199,29 @@ public slots:
             this_scene->removeItem(node); // Удаляем узел из сцены
             delete node; // Освобождаем память, выделенную под узел
         }
-        nodes.clear(); // Очищаем вектор nodes
 
-        // Очищаем сцену
-//        scene->clear();
+        // Очищаем матрицу
+        adjacencyMatrix.clear();
+
+        // Очищаем вектор nodes
+        nodes.clear();
+
+        // Очистка узлов
+        clearLinks();
+
+        // Очистка сцены
+        scene->clear();
+
+        // Отправляем сигнал об изменении матрицы смежности
+        emit adjacencyMatrixChanged(adjacencyMatrix);
     }
 
-    // обновление связей
-    void updateLinks()
-    {
-        drawLinks(scene);
-    }
+
+    // слот для обновления связей
+    void handleUpdateLinksSignal()
+     {
+        drawLinks();
+     }
 };
 
 #endif // GRAPH_H
