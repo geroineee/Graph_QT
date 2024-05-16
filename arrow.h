@@ -4,6 +4,8 @@
 #include <QGraphicsItem>
 #include <QPainter>
 
+#include <math.h>
+
 class Arrow : public QGraphicsItem
 {
 public:
@@ -26,13 +28,15 @@ public:
         QLineF line = calculateLine();
         painter->drawLine(line);
 
-        QPointF arrowP2 = line.p2();
-        QPointF arrowP1 = line.p1() + (line.p2() - line.p1()) * 0.5;
+        double angle = atan2(line.dy(), line.dx());
+        double arrowSize = 10;
 
-//        qreal angle = arrowP2 - (arrowP1-arrowP2);
+        QPointF arrowP1 = line.pointAt(0.1);
+        QPointF arrowP2 = line.pointAt(0.3);
 
-        QLineF arrowLine1(arrowP1, arrowP2 + QPointF(10, -10));
-        QLineF arrowLine2(arrowP1, arrowP2 + QPointF(10, 10));
+
+        QLineF arrowLine1(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle + M_PI_4), arrowSize * 1 *  sin(angle + M_PI_4)));
+        QLineF arrowLine2(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle - M_PI_4), arrowSize * 1 * sin(angle - M_PI_4)));
         painter->drawLine(arrowLine1);
         painter->drawLine(arrowLine2);
     }
