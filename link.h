@@ -5,10 +5,12 @@
 #include <QPainter>
 #include <QFont>
 
+#include "Node.h"
+
 class Link : public QGraphicsItem
 {
 public:
-    Link(QGraphicsItem* sourceNode, QGraphicsItem* destNode, int weight)
+    Link(Node* sourceNode, Node* destNode, int weight)
     {
         this->sourceNode = sourceNode;
         this->destNode = destNode;
@@ -42,9 +44,18 @@ public:
         painter->drawText(rect, Qt::AlignCenter, QString::number(weight));
     }
 
-private:
-    QGraphicsItem* sourceNode;
-    QGraphicsItem* destNode;
+    void setWeight(int newWeight) {
+        weight = newWeight;
+        update(); // Обновляем отображение веса
+    }
+
+    int getWeight() const {
+        return weight;
+    }
+
+public:
+    Node* sourceNode;
+    Node* destNode;
     int weight;
 
     QLineF calculateLine() const

@@ -82,29 +82,30 @@ public:
 
     // отрисовка связей
     void drawLinks()
+    {
+       // Удаляем все связи из слоя
+       clearLinks();
+
+       for (int i = 0; i < adjacencyMatrix.size(); ++i)
        {
-           // Удаляем все связи из слоя
-           clearLinks();
-
-           for (int i = 0; i < adjacencyMatrix.size(); ++i)
+           for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
            {
-               for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
+                if (adjacencyMatrix[i][j] > 0)
                {
-                   if (adjacencyMatrix[i][j] > 0)
-                   {
-                       // Добавление связи с весом на слой
-                       Link* weightLink = new Link(nodes[i], nodes[j], adjacencyMatrix[i][j]);
-                       linkLayer->addToGroup(weightLink);
+                    // Добавление связи с весом на слой
+                    Link* weightLink = new Link(nodes[i], nodes[j], adjacencyMatrix[i][j]);
+                    linkLayer->addToGroup(weightLink);
 
-                       // Добавление стрелки на слой
-                       Arrow* arrow = new Arrow(nodes[i], nodes[j]);
-                       linkLayer->addToGroup(arrow);
-
-                   }
+                    // Добавление стрелки на слой
+                    Arrow* arrow = new Arrow(nodes[i], nodes[j]);
+                    linkLayer->addToGroup(arrow);
                }
            }
-           scene->update();
        }
+       scene->update();
+    }
+
+
 
     // добавление узла (рандомно)
     void addNode()
@@ -142,7 +143,6 @@ public:
             qDebug() << "removeNode: Неверный индекс.";
             return;
         }
-
         // Удаление узла из сцены и вектора узлов
         scene->removeItem(nodes[index]);
         delete nodes[index];
@@ -210,7 +210,7 @@ public slots:
         else if (needToLink && selectedNodeIndex != -1)
         {
             // Добавляем связь между выделенным узлом и нажатым узлом
-            adjacencyMatrix[selectedNodeIndex][index] = 1;
+//            adjacencyMatrix[selectedNodeIndex][index] = 1;
             adjacencyMatrix[index][selectedNodeIndex] = 1;
 
             // Очистка цвета узлов
@@ -234,13 +234,15 @@ public slots:
             selectedNodeIndex = index;
         }
 
+        // ------------------------------Удаление узла-----------------------------------------------------------------
+
         else if (needToDelete)
         {
             removeNode(index);
-
             needToDelete = false;
         }
 
+        // -------------------------------------------------------------------------------------------------------------
 
         // отрисовка связей
         drawLinks();
@@ -267,9 +269,6 @@ public slots:
 
         // Очистка узлов
         clearLinks();
-
-        // Очистка сцены
-//        scene->clear();
 
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
