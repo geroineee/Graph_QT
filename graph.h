@@ -5,6 +5,8 @@
 #include <QGraphicsScene>
 
 #include <QTimer>
+#include <QInputDialog>
+#include <QString>
 
 #include "Node.h"
 
@@ -110,9 +112,15 @@ public:
     // добавление узла (рандомно)
     void addNode()
     {
+        // Ввод данных
+        bool confirm;
+        QString text = QInputDialog::getText(nullptr, "Введите данные в узел",
+                                             "Данные:", QLineEdit::Normal,
+                                             "", &confirm);
+
         // создание узла и рандомизация его расположения
         QPointF position(qrand() % 400, qrand() % 400);
-        Node* node = new Node(nodes.size(), position, QString::number(qrand() % 400), 60);
+        Node* node = new Node(nodes.size(), position, text, 60);
         node->setPos(position);
         nodes.append(node);
 
@@ -209,12 +217,18 @@ public slots:
         // Проверяем, есть ли уже выделенный узел
         else if (needToLink && selectedNodeIndex != -1)
         {
-            // Добавляем связь между выделенным узлом и нажатым узлом
-//            adjacencyMatrix[selectedNodeIndex][index] = 1;
-            adjacencyMatrix[index][selectedNodeIndex] = 1;
+            // Предложение пользователю ввести вес связи
+           bool confirm;
+           QString text = QInputDialog::getText(nullptr, "Введите вес связи",
+                                                "Вес связи:", QLineEdit::Normal,
+                                                "", &confirm);
+           if (confirm && !text.isEmpty())
+           {
+               int weight = text.toInt(); // Преобразование строки в целое число
+               adjacencyMatrix[index][selectedNodeIndex] = weight;
+           }
 
             // Очистка цвета узлов
-
             for (Node *node : nodes)
             {
                 QBrush brush(Qt::white);
