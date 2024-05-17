@@ -10,35 +10,52 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // создание графа
     graph = new Graph(scene);
-
     ui->graphicsView->setScene(scene);
 
     // коннект кнопки "очистить"
     connect(ui->clear_button, &QPushButton::clicked, graph, &Graph::clearScene);
 
-    // модель для матрицы смежности
-    matrixModel = new QStandardItemModel(this);
 
-    // установка модели к обьекту QTableView
-    ui->matrixView->setModel(matrixModel);
+    //  ----------------------------------------------Матрица смежности----------------------------------------------------------
 
-    // минимальный размер колонок и столбцов QTableView
-    ui->matrixView->verticalHeader()->setMinimumSectionSize(5);
-    ui->matrixView->horizontalHeader()->setMinimumSectionSize(5);
+        // модель для матрицы смежности
+        matrixModel = new QStandardItemModel(this);
 
-    // коннеут для изменения графа при изменении матрицы
-    connect(matrixModel, &QStandardItemModel::dataChanged, this, &MainWindow::onMatrixCellChanged);
+        // установка модели к обьекту QTableView
+        ui->matrixView->setModel(matrixModel);
 
-    // коннект матрицы смежности
-    connect(graph, &Graph::adjacencyMatrixChanged, this, &MainWindow::updateAdjacencyMatrix);
+        // минимальный размер колонок и столбцов QTableView
+        ui->matrixView->verticalHeader()->setMinimumSectionSize(5);
+        ui->matrixView->horizontalHeader()->setMinimumSectionSize(5);
 
-    // Отправляем сигнал об изменении матрицы смежности
-    updateAdjacencyMatrix(graph->getMatrix());
+        // коннеут для изменения графа при изменении матрицы
+        connect(matrixModel, &QStandardItemModel::dataChanged, this, &MainWindow::onMatrixCellChanged);
+
+        // коннект матрицы смежности
+        connect(graph, &Graph::adjacencyMatrixChanged, this, &MainWindow::updateAdjacencyMatrix);
+
+        // Отправляем сигнал об изменении матрицы смежности
+        updateAdjacencyMatrix(graph->getMatrix());
+
+    // --------------------------------------------------------------------------------------------------------------------------
+
+    // инициализация таймера
+    updateTimer = new QTimer(this);
+
+    // коннект таймера к слоту для обновления сцены
+    connect(updateTimer, &QTimer::timeout, this, &MainWindow::updateScene);
+
+    // запуск таймера
+    updateTimer->start(updateInterval);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    // очистка таймера
+    updateTimer->stop();
+    delete updateTimer;
 }
 
 void MainWindow::on_draw_button_clicked()
@@ -96,5 +113,11 @@ void MainWindow::onMatrixCellChanged(const QModelIndex &index)
     graph->getMatrix()[row][column] = value;
 
     // Перерисовываем граф
+    graph->drawLinks();
+}
+
+void MainWindow::updateScene()
+{
+    graph->drawNodes();
     graph->drawLinks();
 }

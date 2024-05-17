@@ -25,16 +25,17 @@ public:
         Q_UNUSED(option)
         Q_UNUSED(widget)
 
+        // получение начальных координат
         QLineF line = calculateLine();
-        painter->drawLine(line);
 
         double angle = atan2(line.dy(), line.dx());
         double arrowSize = 10;
 
+        // начало и конец стрелки
         QPointF arrowP1 = line.pointAt(0.1);
         QPointF arrowP2 = line.pointAt(0.3);
 
-
+        // расчет координат для стрелки
         QLineF arrowLine1(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle + M_PI_4), arrowSize * 1 *  sin(angle + M_PI_4)));
         QLineF arrowLine2(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle - M_PI_4), arrowSize * 1 * sin(angle - M_PI_4)));
         painter->drawLine(arrowLine1);

@@ -47,6 +47,8 @@ private slots:
     // отрисовка изменений в матрице
     void onMatrixCellChanged(const QModelIndex &index);
 
+    void updateScene();
+
 private:
     Ui::MainWindow *ui;
 
@@ -55,7 +57,11 @@ private:
     // Сцена для отрисовки
     QGraphicsScene *scene;
 
-    QStandardItemModel *matrixModel; // Модель для отображения матрицы смежности
+    // Модель для отображения матрицы смежности
+    QStandardItemModel *matrixModel;
+
+    QTimer *updateTimer;
+    int updateInterval = 1000; // интервал обновления в миллисекундах
 
 };
 

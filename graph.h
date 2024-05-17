@@ -91,8 +91,8 @@ public:
                        linkLayer->addToGroup(link);
 
                        // Добавление стрелки на слой
-                       Arrow* arrow = new Arrow(nodes[i], nodes[j]);
-                       linkLayer->addToGroup(arrow);
+//                       Arrow* arrow = new Arrow(nodes[i], nodes[j]);
+//                       linkLayer->addToGroup(arrow);
                    }
                }
            }
@@ -210,7 +210,7 @@ public slots:
         clearLinks();
 
         // Очистка сцены
-        scene->clear();
+//        scene->clear();
 
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
