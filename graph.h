@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 
 #include <QTimer>
+#include <QThread>
 #include <QInputDialog>
 #include <QString>
 
@@ -59,8 +60,6 @@ public:
 
     bool needTwoWayAddition = false;
 
-     bool isInputDialogOpen = false;
-
 public:
     Graph(QGraphicsScene *new_scene)
     {
@@ -71,8 +70,6 @@ public:
 
         // Добавляем его на сцену
         scene->addItem(linkLayer);
-
-        bool isInputDialogOpen = false;
     }
 
     int getSelectedNodeIndex() const {return selectedNodeIndex;}
@@ -128,7 +125,6 @@ public:
                                             "Данные:", QLineEdit::Normal,
                                             "", &confirm);
 
-
         // При отмене \ пустой строке \ не число
         if ( !confirm /*|| text == "" || !text.toInt() */)
         {
@@ -165,9 +161,9 @@ public:
         // Проверка на корректность индекса
         if (index < 0 || index >= nodes.size())
         {
-            qDebug() << "removeNode: Неверный индекс.";
             return;
         }
+
         // Удаление узла из сцены и вектора узлов
         scene->removeItem(nodes[index]);
         delete nodes[index];
@@ -245,6 +241,35 @@ public:
 
         return path;
     }
+
+        // Метод для подсветки узлов в соответствии с заданным путем
+        void highlightPath(const QVector<int>& path)
+        {
+           for (int i = 0; i < path.size(); ++i)
+           {
+               int nodeIndex = path[i];
+               QBrush brush(Qt::blue);
+               nodes[nodeIndex]->m_brush = brush;
+               nodes[nodeIndex]->update();
+               drawLinks();
+               drawNodes();
+               qDebug() << "Закрасил" << i;
+           }
+           scene->update();
+           QThread::msleep(5000);
+           for (int i = 0; i < path.size(); ++i)
+           {
+               int nodeIndex = path[i];
+               QBrush brush(Qt::white);
+               nodes[nodeIndex]->m_brush = brush;
+               nodes[nodeIndex]->update();
+               scene->update();
+               qDebug() << "Ракрасил" << i;
+           }
+
+           // Обновление сцены после всех изменений
+           scene->update();
+        }
 
     // очистка всех связей
     void clearLinks()
@@ -329,8 +354,7 @@ public slots:
             needToDelete = false;
         }
 
-        // --------------------------------Задача Комивояжера------------------------------------------------------------------
-
+        // --------------------------------Задача Коммивояжера------------------------------------------------------------------
 
         else if (needToSolveTask)
         {
@@ -341,6 +365,9 @@ public slots:
             QVector<int> path = solveTravelingSalesmanProblem(index);
 
             qDebug() << path;
+
+            // Отрисовка найденного пути
+            highlightPath(path);
 
             needToSolveTask = false;
         }

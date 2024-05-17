@@ -96,8 +96,9 @@ public:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
     {
         QGraphicsItem::mouseReleaseEvent(event);
+
         // Отправляем сигнал с индексом нажатого узла
-        emit nodePressed(m_index); // Используем emit для вызова сигнала
+        emit nodePressed(m_index);
     }
 
     int m_index; // индекс узла (для матрицы смежности)
