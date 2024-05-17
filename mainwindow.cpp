@@ -60,8 +60,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_draw_button_clicked()
 {
-    graph->addNode();
     qDebug() << "Добавление узла.";
+    graph->addNode();
 
     // отрисовка узлов
     graph->drawNodes();
@@ -124,7 +124,57 @@ void MainWindow::updateScene()
 
 void MainWindow::on_delete_node_button_clicked()
 {
-    qDebug() << "Удаление узла.";
-    graph->needToDelete = true;
+    // переключение
+    bool &value = graph->needToDelete;
+    if (value)
+    {
+        value = false;
+        qDebug() << "Удаление узла. off";
+    }
+
+    else
+    {
+        value = true;
+        qDebug() << "Удаление узла. on";
+    }
+}
+
+
+void MainWindow::on_delete_link_button_clicked()
+{
+     // переключение
+     bool &value = graph->needToDeleteLink;
+     if (value)
+     {
+         value = false;
+         qDebug() << "Удаление связи. off";
+     }
+     else
+     {
+         value = true;
+         qDebug() << "Удаление связи. on";
+     }
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    // переключение
+    bool &value = graph->needToSolveTask;
+    if (value)
+    {
+        value = false;
+        qDebug() << "Комивояжер. off";
+    }
+    else
+    {
+        value = true;
+        qDebug() << "Комивояжер. on";
+    }
+}
+
+void MainWindow::on_checkBox_clicked(bool checked)
+{
+    qDebug() << "Двухсвязное добавление";
+    graph->needTwoWayAddition = checked;
 }
 

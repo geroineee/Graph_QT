@@ -34,7 +34,7 @@ public:
 
         // начало и конец стрелки
         QPointF arrowP1 = line.pointAt(0.1);
-        QPointF arrowP2 = line.pointAt(0.3);
+        QPointF arrowP2 = line.pointAt(0.15);
 
         // расчет координат для стрелки
         QLineF arrowLine1(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle + M_PI_4), arrowSize * 1 *  sin(angle + M_PI_4)));

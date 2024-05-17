@@ -8,6 +8,8 @@
 #include <QInputDialog>
 #include <QString>
 
+#include <QDebug>
+
 #include "Node.h"
 
 #include "arrow.h"
@@ -38,12 +40,26 @@ private:
     // Новый слой для связей
     QGraphicsItemGroup* linkLayer;
 
+    // диалоговое окно
+    QInputDialog inputDialog;
+
+
 public:
     // флаг для добавления новых связей между узлами
     bool needToLink = false;
 
     // флаг для удаления узла
     bool needToDelete = false;
+
+    // удаление связи
+    bool needToDeleteLink = false;
+
+    // комивояжер
+    bool needToSolveTask = false;
+
+    bool needTwoWayAddition = false;
+
+     bool isInputDialogOpen = false;
 
 public:
     Graph(QGraphicsScene *new_scene)
@@ -55,16 +71,11 @@ public:
 
         // Добавляем его на сцену
         scene->addItem(linkLayer);
+
+        bool isInputDialogOpen = false;
     }
 
-    int getSelectedNodeIndex() const
-    {
-        return selectedNodeIndex;
-    }
-
-
-
-
+    int getSelectedNodeIndex() const {return selectedNodeIndex;}
 
     QVector<QVector<int>>& getMatrix() {return adjacencyMatrix;}
 
@@ -107,16 +118,22 @@ public:
        scene->update();
     }
 
-
-
     // добавление узла (рандомно)
     void addNode()
     {
         // Ввод данных
         bool confirm;
-        QString text = QInputDialog::getText(nullptr, "Введите данные в узел",
-                                             "Данные:", QLineEdit::Normal,
-                                             "", &confirm);
+
+        QString text = inputDialog.getText(nullptr, "Введите данные в узел",
+                                            "Данные:", QLineEdit::Normal,
+                                            "", &confirm);
+
+
+        // При отмене \ пустой строке \ не число
+        if ( !confirm /*|| text == "" || !text.toInt() */)
+        {
+            return;
+        }
 
         // создание узла и рандомизация его расположения
         QPointF position(qrand() % 400, qrand() % 400);
@@ -183,6 +200,51 @@ public:
         emit adjacencyMatrixChanged(adjacencyMatrix);
     }
 
+    // Решение задачи коммивояжера
+    QVector<int> solveTravelingSalesmanProblem(int startIndex)
+    {
+        if (nodes.isEmpty() || startIndex < 0 || startIndex >= nodes.size())
+            return QVector<int>(); // Возвращаем пустой вектор, если граф пуст или индекс некорректен
+
+        QVector<bool> visited(nodes.size(), false);
+        QVector<int> path;
+        path.reserve(nodes.size());
+
+        // Начинаем с указанного узла
+        int currentNode = startIndex;
+        visited[currentNode] = true;
+        path.append(currentNode);
+
+        // Пока не посетим все узлы
+        while (path.size() < nodes.size())
+        {
+            int nextNode = -1;
+            int minDistance = INT_MAX;
+
+            // Ищем ближайший непосещенный узел
+            for (int i = 0; i < nodes.size(); ++i)
+            {
+                if (!visited[i] && adjacencyMatrix[currentNode][i] > 0 && adjacencyMatrix[currentNode][i] < minDistance)
+                {
+                    minDistance = adjacencyMatrix[currentNode][i];
+                    nextNode = i;
+                }
+            }
+
+            if (nextNode == -1)
+                break; // Если не удалось найти следующий узел, выходим из цикла
+
+            // Добавляем следующий узел в путь и отмечаем его как посещенный
+            path.append(nextNode);
+            visited[nextNode] = true;
+            currentNode = nextNode;
+        }
+
+        // Возвращаемся в начальный узел
+        path.append(startIndex);
+
+        return path;
+    }
 
     // очистка всех связей
     void clearLinks()
@@ -197,36 +259,50 @@ public:
         }
     }
 
-
 public slots:
     // обработка сигнала нажатия на узел
     void handleNodePressed(int index)
     {
         // --------------------------Добавление связи-----------------------------------------------------------------
-        if (!needToLink && !needToDelete)
+        if (!needToLink && !needToDelete && !needToDeleteLink && !needToSolveTask)
         {
             // Очистка цвета узлов
             for (Node *node : nodes)
             {
-                 QBrush brush(Qt::white);
+                QBrush brush(Qt::white);
                 node->m_brush = brush;
                 node->update();
             }
             return;
         }
+
         // Проверяем, есть ли уже выделенный узел
-        else if (needToLink && selectedNodeIndex != -1)
+        if ((needToLink || needToDeleteLink) && selectedNodeIndex != -1)
         {
-            // Предложение пользователю ввести вес связи
-           bool confirm;
-           QString text = QInputDialog::getText(nullptr, "Введите вес связи",
-                                                "Вес связи:", QLineEdit::Normal,
-                                                "", &confirm);
-           if (confirm && !text.isEmpty())
-           {
-               int weight = text.toInt(); // Преобразование строки в целое число
-               adjacencyMatrix[index][selectedNodeIndex] = weight;
-           }
+            bool confirm = true;
+            if (needToLink)
+            {
+                qDebug() << "номер нажатого:" << index + 1;
+
+                // Предложение пользователю ввести вес связи
+                QString text = QInputDialog::getText(nullptr, "Введите вес связи",
+                                                     "Вес связи:", QLineEdit::Normal,
+                                                     "", &confirm);
+
+                if (confirm && !text.isEmpty())
+                {
+                    int weight = text.toInt(); // Преобразование строки в целое число
+                    adjacencyMatrix[index][selectedNodeIndex] = weight;
+                    if (needTwoWayAddition) adjacencyMatrix[selectedNodeIndex][index] = weight;
+                }
+                // Убираем флаг на добавление узла
+                needToLink = false;
+            }
+            else if (needToDeleteLink)
+            {
+                adjacencyMatrix[index][selectedNodeIndex] = 0;
+                needToDeleteLink = false;
+            }
 
             // Очистка цвета узлов
             for (Node *node : nodes)
@@ -238,11 +314,8 @@ public slots:
 
             // Обновляем состояние выделенного узла
             selectedNodeIndex = -1;
-
-            // Убираем флаг на добавление узла
-            needToLink = false;
-            }
-        else if (needToLink)
+        }
+        else if (needToLink || needToDeleteLink)
         {
             // Сохраняем индекс нажатого узла
             selectedNodeIndex = index;
@@ -256,10 +329,29 @@ public slots:
             needToDelete = false;
         }
 
-        // -------------------------------------------------------------------------------------------------------------
+        // --------------------------------Задача Комивояжера------------------------------------------------------------------
+
+
+        else if (needToSolveTask)
+        {
+            // вызов метода решения задачи Комивояжера, принимающий индекс узла в матрице смежности
+            qDebug() << "Вы решили задачу комивояжера!";
+
+            // Здесь можно обработать результат, например, вывести путь или обновить интерфейс
+            QVector<int> path = solveTravelingSalesmanProblem(index);
+
+            qDebug() << path;
+
+            needToSolveTask = false;
+        }
+
+        // --------------------------------------------------------------------------------------------------------------------
+
+        nodes[index]->m_isMovable = true;
 
         // отрисовка связей
         drawLinks();
+
 
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
@@ -288,12 +380,12 @@ public slots:
         emit adjacencyMatrixChanged(adjacencyMatrix);
     }
 
-
     // слот для обновления связей
     void handleUpdateLinksSignal()
      {
         drawLinks();
      }
+
 };
 
 #endif // GRAPH_H

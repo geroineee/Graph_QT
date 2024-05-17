@@ -5,7 +5,6 @@
 
 #include <QItemDelegate>
 
-
 #include <QPainter>
 
 #include <QTime>
@@ -50,6 +49,12 @@ private slots:
     void updateScene();
 
     void on_delete_node_button_clicked();
+
+    void on_delete_link_button_clicked();
+
+    void on_pushButton_2_clicked();
+
+    void on_checkBox_clicked(bool checked);
 
 private:
     Ui::MainWindow *ui;

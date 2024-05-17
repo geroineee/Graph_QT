@@ -29,8 +29,14 @@ public:
         m_data = data;
         m_size = size;
         m_brush = Qt::white;
+        m_isMovable = true;
 
-        setFlag(ItemIsMovable); // Устанавливаем флаг, позволяющий перемещать узлы
+        setFlag(ItemIsMovable, true); // Устанавливаем флаг, позволяющий перемещать узлы
+    }
+
+    void isMovableNode(bool flag)
+    {
+        m_isMovable = flag;
     }
 
     QRectF boundingRect() const override
@@ -63,15 +69,16 @@ public:
     // перемещение узла по зажатию ЛКМ
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override
     {
-        QGraphicsItem::mouseMoveEvent(event);
+        if (m_isMovable)
+        {
+            QGraphicsItem::mouseMoveEvent(event);
 
-        QPointF move = event->scenePos() - event->lastScenePos();
-        m_position += move;
+            QPointF move = event->scenePos() - event->lastScenePos();
+            m_position += move;
 
-        // Обновляем связи при перемещении узла
-        emit updateLinksSignal();
-
-//        update();
+            // Обновляем связи при перемещении узла
+            emit updateLinksSignal();
+        }
     }
 
     // нажатие ЛКМ
@@ -80,27 +87,22 @@ public:
         QGraphicsItem::mousePressEvent(event);
 
         // Выделяем узел синим цветом
-        QBrush brush(Qt::blue);
-        m_brush = brush; // Сохраняем кисть для использования в методе paint
-
-        // Сохраняем индекс узла, на который нажали
-        int pressedIndex = m_index;
-
-        // Отправляем сигнал с индексом нажатого узла
-        emit nodePressed(pressedIndex); // Используем emit для вызова сигнала
-
-        // Запрашиваем перерисовку элемента
-//        update();
+        QBrush brush(Qt::cyan);
+        // Сохраняем кисть для использования в методе paint
+        m_brush = brush;
     }
 
     // отжатие ЛКМ
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
     {
         QGraphicsItem::mouseReleaseEvent(event);
+        // Отправляем сигнал с индексом нажатого узла
+        emit nodePressed(m_index); // Используем emit для вызова сигнала
     }
 
     int m_index; // индекс узла (для матрицы смежности)
     QBrush m_brush;
+    bool m_isMovable;
 private:
     int m_size; // размер окружности узла
     QPointF m_position; // позиция узла
