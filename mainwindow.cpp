@@ -121,3 +121,10 @@ void MainWindow::updateScene()
     graph->drawNodes();
     graph->drawLinks();
 }
+
+void MainWindow::on_delete_node_button_clicked()
+{
+    qDebug() << "Удаление узла.";
+    graph->needToDelete = true;
+}
+

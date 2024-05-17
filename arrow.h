@@ -8,6 +8,7 @@
 
 class Arrow : public QGraphicsItem
 {
+
 public:
     Arrow(QGraphicsItem* sourceNode, QGraphicsItem* destNode)
     {
@@ -38,13 +39,16 @@ public:
         // расчет координат для стрелки
         QLineF arrowLine1(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle + M_PI_4), arrowSize * 1 *  sin(angle + M_PI_4)));
         QLineF arrowLine2(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle - M_PI_4), arrowSize * 1 * sin(angle - M_PI_4)));
+
         painter->drawLine(arrowLine1);
         painter->drawLine(arrowLine2);
     }
 
+
 private:
     QGraphicsItem* sourceNode;
     QGraphicsItem* destNode;
+
 
     QLineF calculateLine() const
     {

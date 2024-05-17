@@ -49,6 +49,8 @@ private slots:
 
     void updateScene();
 
+    void on_delete_node_button_clicked();
+
 private:
     Ui::MainWindow *ui;
 

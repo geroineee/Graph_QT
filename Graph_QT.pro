@@ -18,6 +18,7 @@ HEADERS += \
     Node.h \
     arrow.h \
     graph.h \
+    link.h \
     mainwindow.h
 
 FORMS += \

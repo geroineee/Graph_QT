@@ -1,0 +1,58 @@
+#ifndef LINK_H
+#define LINK_H
+
+#include <QGraphicsItem>
+#include <QPainter>
+#include <QFont>
+
+class Link : public QGraphicsItem
+{
+public:
+    Link(QGraphicsItem* sourceNode, QGraphicsItem* destNode, int weight)
+    {
+        this->sourceNode = sourceNode;
+        this->destNode = destNode;
+        this->weight = weight;
+    }
+
+    QRectF boundingRect() const override
+    {
+        return QRectF(QPointF(0, 0), QSizeF(100, 20)).normalized();
+    }
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
+    {
+        Q_UNUSED(option)
+        Q_UNUSED(widget)
+
+        // Получение начальных координат
+        QLineF line = calculateLine();
+
+        // Отрисовка линии
+        painter->drawLine(line);
+
+        // Отрисовка прямоугольника с весом связи
+        QPointF center = line.pointAt(0.5);
+        QRectF rect(center.x() - 20, center.y() - 10, 40, 20);
+        painter->setPen(Qt::black);
+        painter->setBrush(Qt::white);
+        painter->drawRect(rect);
+        painter->setPen(Qt::black);
+        painter->setFont(QFont("Arial", 10));
+        painter->drawText(rect, Qt::AlignCenter, QString::number(weight));
+    }
+
+private:
+    QGraphicsItem* sourceNode;
+    QGraphicsItem* destNode;
+    int weight;
+
+    QLineF calculateLine() const
+    {
+        QPointF sourcePos = sourceNode->mapToScene(sourceNode->boundingRect().center());
+        QPointF destPos = destNode->mapToScene(destNode->boundingRect().center());
+        return QLineF(sourcePos, destPos);
+    }
+};
+
+#endif // LINK_H

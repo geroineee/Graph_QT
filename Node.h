@@ -43,9 +43,21 @@ public:
         Q_UNUSED(option)
         Q_UNUSED(widget)
 
+        // основной элемент узла
         painter->setBrush(m_brush);
         painter->drawEllipse(-m_size/2, -m_size/2, m_size, m_size);
         painter->drawText(-10, 10, m_data);
+
+
+        // прямоугольник с номером узла
+        QRectF rect(boundingRect().topLeft(), QSizeF(15, 15));
+
+        painter->setPen(Qt::black);
+        painter->setBrush(Qt::white);
+        painter->drawRect(rect);
+        painter->setFont(QFont("Arial", 9));
+        painter->drawText(rect, Qt::AlignCenter, QString::number(m_index+1));
+
     }
 
     // перемещение узла по зажатию ЛКМ
@@ -59,7 +71,7 @@ public:
         // Обновляем связи при перемещении узла
         emit updateLinksSignal();
 
-        update();
+//        update();
     }
 
     // нажатие ЛКМ
@@ -78,7 +90,7 @@ public:
         emit nodePressed(pressedIndex); // Используем emit для вызова сигнала
 
         // Запрашиваем перерисовку элемента
-        update();
+//        update();
     }
 
     // отжатие ЛКМ
@@ -87,9 +99,9 @@ public:
         QGraphicsItem::mouseReleaseEvent(event);
     }
 
+    int m_index; // индекс узла (для матрицы смежности)
     QBrush m_brush;
 private:
-    int m_index; // индекс узла (для матрицы смежности)
     int m_size; // размер окружности узла
     QPointF m_position; // позиция узла
     QString m_data;

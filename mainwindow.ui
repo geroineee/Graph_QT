@@ -35,6 +35,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="delete_node_button">
+        <property name="text">
+         <string>Удалить узел</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="clear_button">
         <property name="text">
          <string>Очистить</string>
