@@ -243,33 +243,38 @@ public:
     }
 
         // Метод для подсветки узлов в соответствии с заданным путем
-        void highlightPath(const QVector<int>& path)
+    void highlightPath(const QVector<int>& path)
+    {
+        for (int i = 0; i < path.size(); ++i)
         {
-           for (int i = 0; i < path.size(); ++i)
-           {
-               int nodeIndex = path[i];
-               QBrush brush(Qt::blue);
-               nodes[nodeIndex]->m_brush = brush;
-               nodes[nodeIndex]->update();
-               drawLinks();
-               drawNodes();
-               qDebug() << "Закрасил" << i;
-           }
-           scene->update();
-           QThread::msleep(5000);
-           for (int i = 0; i < path.size(); ++i)
-           {
-               int nodeIndex = path[i];
-               QBrush brush(Qt::white);
-               nodes[nodeIndex]->m_brush = brush;
-               nodes[nodeIndex]->update();
-               scene->update();
-               qDebug() << "Ракрасил" << i;
-           }
+            QTimer::singleShot(i * 1000, [this, path, i]()
+            {
+                int prev_index = -1;
+                if ((i - 1) >= 0)
+                {
+                    prev_index = path[i-1];
+                }
 
-           // Обновление сцены после всех изменений
-           scene->update();
+                int index = path[i];
+
+                // Задержка в 1 секунду между каждым узлом
+                nodes[index]->m_brush = Qt::green;
+
+                // Обновление узла на сцене
+                nodes[index]->update();
+
+                // закрашивание предыдущий серым
+                if (prev_index != -1)
+                {
+                    nodes[prev_index]->m_brush = Qt::gray;
+                    nodes[prev_index]->update();
+                }
+            });
+
+            // очистка цвета узлов
+            QTimer::singleShot(8000, this, [=]() { clearNodesColor(); });
         }
+    }
 
     // очистка всех связей
     void clearLinks()
@@ -292,12 +297,7 @@ public slots:
         if (!needToLink && !needToDelete && !needToDeleteLink && !needToSolveTask)
         {
             // Очистка цвета узлов
-            for (Node *node : nodes)
-            {
-                QBrush brush(Qt::white);
-                node->m_brush = brush;
-                node->update();
-            }
+            clearNodesColor();
             return;
         }
 
@@ -330,12 +330,7 @@ public slots:
             }
 
             // Очистка цвета узлов
-            for (Node *node : nodes)
-            {
-                QBrush brush(Qt::white);
-                node->m_brush = brush;
-                node->update();
-            }
+            clearNodesColor();
 
             // Обновляем состояние выделенного узла
             selectedNodeIndex = -1;
@@ -412,6 +407,17 @@ public slots:
      {
         drawLinks();
      }
+
+    // Очистка цвета узлов
+void clearNodesColor()
+{
+    for (Node *node : nodes)
+    {
+        QBrush brush(Qt::white);
+        node->m_brush = brush;
+        node->update();
+    }
+}
 
 };
 
