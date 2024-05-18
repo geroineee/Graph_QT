@@ -272,7 +272,7 @@ public:
             });
 
             // очистка цвета узлов
-            QTimer::singleShot(8000, this, [=]() { clearNodesColor(); });
+            QTimer::singleShot(4000, this, [=]() { clearNodesColor(); });
         }
     }
 

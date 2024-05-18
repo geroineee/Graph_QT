@@ -127,7 +127,7 @@
        </layout>
       </item>
       <item row="0" column="1" rowspan="2">
-       <widget class="QGraphicsView" name="graphicsView"/>
+       <widget class="ZoomableGraphicsView" name="graphicsView"/>
       </item>
       <item row="1" column="0">
        <widget class="QTableView" name="matrixView">

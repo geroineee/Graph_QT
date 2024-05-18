@@ -13,6 +13,7 @@
 
 #include "Node.h"
 #include "graph.h"
+#include "zoomablegraphicsview.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -63,6 +64,7 @@ private:
 
     // Сцена для отрисовки
     QGraphicsScene *scene;
+
 
     // Модель для отображения матрицы смежности
     QStandardItemModel *matrixModel;

@@ -19,7 +19,8 @@ HEADERS += \
     arrow.h \
     graph.h \
     link.h \
-    mainwindow.h
+    mainwindow.h \
+    zoomablegraphicsview.h
 
 FORMS += \
     mainwindow.ui

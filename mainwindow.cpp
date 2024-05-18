@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->setupUi(this);
 
     // создание сцены
-    scene = new QGraphicsScene;
+    QGraphicsScene *scene = new QGraphicsScene(this);
 
     // создание графа
     graph = new Graph(scene);
