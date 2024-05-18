@@ -61,6 +61,8 @@ private slots:
 
     void updateStatusBar(QString text);
 
+    void on_randomize_button_clicked();
+
 private:
     Ui::MainWindow *ui;
 

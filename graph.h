@@ -304,12 +304,13 @@ public:
         return paths;
     }
 
-        // Метод для подсветки узлов в соответствии с заданным путем
+    // Визуализация обхода
     void highlightPath(const QVector<int>& path)
     {
+
         for (int i = 0; i < path.size(); ++i)
         {
-            QTimer::singleShot(i * 1000, [this, path, i]()
+            QTimer::singleShot( i*800, [this, path, i]()
             {
                 int prev_index = -1;
                 if ((i - 1) >= 0)
@@ -319,7 +320,7 @@ public:
 
                 int index = path[i];
 
-                // Задержка в 1 секунду между каждым узлом
+                // Перекрашивание узла
                 nodes[index]->m_brush = Qt::green;
 
                 // Обновление узла на сцене
@@ -332,10 +333,61 @@ public:
                     nodes[prev_index]->update();
                 }
             });
-
-            // очистка цвета узлов
-            QTimer::singleShot(4000, this, [=]() { clearNodesColor(); });
         }
+        // очистка цвета узлов
+        QTimer::singleShot(path.size() * 800 + 500, this, [=]() { clearNodesColor(); });
+
+    }
+
+    // Рандомизация матрицы и создания узлов
+    void randomizeAdjacencyMatrix(int size)
+    {
+        // Очистка текущих узлов и матрицы смежности
+        clearScene();
+
+        // Создание новой матрицы смежности
+        adjacencyMatrix.clear();
+        for (int i = 0; i < size; ++i)
+        {
+            QVector<int> row(size, 0);
+            adjacencyMatrix.append(row);
+        }
+
+        // Заполнение матрицы смежности случайными значениями
+        for (int i = 0; i < size; ++i)
+        {
+            for (int j = i + 1; j < size; ++j)
+            {
+                // Вес от 1 до 50
+                int weight = qrand() % 50 + 1;
+                adjacencyMatrix[i][j] = weight;
+                adjacencyMatrix[j][i] = weight;
+            }
+        }
+
+        // Создание узлов
+        nodes.clear();
+        for (int i = 0; i < size; ++i)
+        {
+            QPointF position(qrand() % 400, qrand() % 400); // Случайная позиция на сцене
+            QString data = QString::number(i + 1); // Данные узла
+            Node* node = new Node(i, position, data, 60); // Создание узла
+            node->setPos(position);
+            nodes.append(node);
+
+            // Подключение сигналов узла
+            connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
+            connect(node, &Node::updateLinksSignal, this, &Graph::handleUpdateLinksSignal);
+        }
+
+        // Отрисовка узлов
+        drawNodes();
+
+        // Отрисовка связей
+        drawLinks();
+
+        // Отправляем сигнал об изменении матрицы смежности
+        emit adjacencyMatrixChanged(adjacencyMatrix);
     }
 
     // очистка всех связей

@@ -43,13 +43,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // --------------------------------------------------------------------------------------------------------------------------
 
     // инициализация таймера
-    updateTimer = new QTimer(this);
+//    updateTimer = new QTimer(this);
 
     // коннект таймера к слоту для обновления сцены
-    connect(updateTimer, &QTimer::timeout, this, &MainWindow::updateScene);
+//    connect(updateTimer, &QTimer::timeout, this, &MainWindow::updateScene);
 
     // запуск таймера
-    updateTimer->start(updateInterval);
+//    updateTimer->start(updateInterval);
 
     // кнопки
 
@@ -228,10 +228,16 @@ void MainWindow::on_deixtra_button_clicked()
     graph->needToLink = false;
     graph->needToSolveTask = false;
     graph->needToDelete = false;
-
 }
 
 void MainWindow::updateStatusBar(QString text)
 {
     ui->statusbar->showMessage(text);
 }
+
+void MainWindow::on_randomize_button_clicked()
+{
+    qDebug() << "Рандомизация.";
+    graph->randomizeAdjacencyMatrix(10);
+}
+
