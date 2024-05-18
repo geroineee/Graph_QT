@@ -34,6 +34,8 @@ public:
         setFlag(ItemIsMovable, true); // Устанавливаем флаг, позволяющий перемещать узлы
     }
 
+    int getSize() {return m_size;}
+
     void isMovableNode(bool flag)
     {
         m_isMovable = flag;
@@ -49,6 +51,10 @@ public:
         Q_UNUSED(option)
         Q_UNUSED(widget)
 
+        QPen pen;
+        pen.setWidth(2);
+        painter->setPen(pen);
+
         // основной элемент узла
         painter->setBrush(m_brush);
         painter->drawEllipse(-m_size/2, -m_size/2, m_size, m_size);
@@ -58,7 +64,7 @@ public:
         // прямоугольник с номером узла
         QRectF rect(boundingRect().topLeft(), QSizeF(15, 15));
 
-        painter->setPen(Qt::black);
+
         painter->setBrush(Qt::white);
         painter->drawRect(rect);
         painter->setFont(QFont("Arial", 9));

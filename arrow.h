@@ -5,12 +5,13 @@
 #include <QPainter>
 
 #include <math.h>
+#include "Node.h"
 
 class Arrow : public QGraphicsItem
 {
 
 public:
-    Arrow(QGraphicsItem* sourceNode, QGraphicsItem* destNode)
+    Arrow(Node* sourceNode, Node* destNode)
     {
         this->sourceNode = sourceNode;
         this->destNode = destNode;
@@ -26,19 +27,31 @@ public:
         Q_UNUSED(option)
         Q_UNUSED(widget)
 
+        QPen pen;
+        pen.setWidth(2);
+        painter->setPen(pen);
+
         // получение начальных координат
         QLineF line = calculateLine();
 
         double angle = atan2(line.dy(), line.dx());
         double arrowSize = 10;
 
-        // начало и конец стрелки
-        QPointF arrowP1 = line.pointAt(0.1);
-        QPointF arrowP2 = line.pointAt(0.15);
+        QPointF arrowP1 = line.pointAt(0);
+        QPointF arrowP2 = line.pointAt(0);
+
+        int radius = destNode->getSize() / 2;
+
+        qreal delta_y = sin(angle) * radius;
+        qreal delta_x = cos(angle) * radius;
+
+        arrowP1 += QPointF{delta_x, delta_y};
+        arrowP2 += QPointF{delta_x*1.5, delta_y*1.5};
 
         // расчет координат для стрелки
         QLineF arrowLine1(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle + M_PI_4), arrowSize * 1 *  sin(angle + M_PI_4)));
         QLineF arrowLine2(arrowP1, arrowP2 + QPointF(arrowSize * 1 * cos(angle - M_PI_4), arrowSize * 1 * sin(angle - M_PI_4)));
+
 
         painter->drawLine(arrowLine1);
         painter->drawLine(arrowLine2);
@@ -46,8 +59,8 @@ public:
 
 
 private:
-    QGraphicsItem* sourceNode;
-    QGraphicsItem* destNode;
+    Node* sourceNode;
+    Node* destNode;
 
 
     QLineF calculateLine() const

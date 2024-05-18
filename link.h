@@ -27,6 +27,10 @@ public:
         Q_UNUSED(option)
         Q_UNUSED(widget)
 
+        QPen pen;
+        pen.setWidth(2);
+        painter->setPen(pen);
+
         // Получение начальных координат
         QLineF line = calculateLine();
 
@@ -36,7 +40,6 @@ public:
         // Отрисовка прямоугольника с весом связи
         QPointF center = line.pointAt(0.5);
         QRectF rect(center.x() - 20, center.y() - 10, 40, 20);
-        painter->setPen(Qt::black);
         painter->setBrush(Qt::white);
         painter->drawRect(rect);
         painter->setPen(Qt::black);

@@ -15,6 +15,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // коннект кнопки "очистить"
     connect(ui->clear_button, &QPushButton::clicked, graph, &Graph::clearScene);
 
+    // коннект обновления статусбара из Graph
+    connect(graph, &Graph::textToStatusBar, this, &MainWindow::updateStatusBar);
+
 
     //  ----------------------------------------------Матрица смежности----------------------------------------------------------
 
@@ -47,6 +50,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // запуск таймера
     updateTimer->start(updateInterval);
+
+    // кнопки
+
+    ui->delete_link_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
+    ui->delete_node_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
+    ui->draw_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
+    ui->pushButton->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
+    ui->pushButton_2->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
+    ui->clear_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
 }
 
 MainWindow::~MainWindow()
@@ -137,6 +149,12 @@ void MainWindow::on_delete_node_button_clicked()
         value = true;
         qDebug() << "Удаление узла. on";
     }
+
+    // Выключение других функций
+    graph->needToDeleteLink = false;
+    graph->needToLink = false;
+    graph->needToSolveTask = false;
+    graph->needDeixtra = false;
 }
 
 
@@ -154,6 +172,12 @@ void MainWindow::on_delete_link_button_clicked()
          value = true;
          qDebug() << "Удаление связи. on";
      }
+
+     // Выключение других функций
+     graph->needToLink = false;
+     graph->needToSolveTask = false;
+     graph->needToDelete = false;
+     graph->needDeixtra = false;
 }
 
 void MainWindow::on_pushButton_2_clicked()
@@ -163,18 +187,51 @@ void MainWindow::on_pushButton_2_clicked()
     if (value)
     {
         value = false;
-        qDebug() << "Комивояжер. off";
+        qDebug() << "Коммивояжер. off";
     }
     else
     {
         value = true;
-        qDebug() << "Комивояжер. on";
+        qDebug() << "Коммивояжер. on";
     }
+
+    // Выключение других функций
+    graph->needToDeleteLink = false;
+    graph->needToLink = false;
+    graph->needToDelete = false;
+    graph->needDeixtra = false;
 }
 
 void MainWindow::on_checkBox_clicked(bool checked)
 {
-    qDebug() << "Двухсвязное добавление";
     graph->needTwoWayAddition = checked;
 }
 
+
+void MainWindow::on_deixtra_button_clicked()
+{
+    // переключение
+    bool &value = graph->needDeixtra;
+    if (value)
+    {
+        value = false;
+        qDebug() << "Дейкстра. off";
+    }
+    else
+    {
+        value = true;
+        qDebug() << "Дейкстра. on";
+    }
+
+    // Выключение других функций
+    graph->needToDeleteLink = false;
+    graph->needToLink = false;
+    graph->needToSolveTask = false;
+    graph->needToDelete = false;
+
+}
+
+void MainWindow::updateStatusBar(QString text)
+{
+    ui->statusbar->showMessage(text);
+}

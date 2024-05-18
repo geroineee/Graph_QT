@@ -19,7 +19,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout" columnstretch="40,60">
+     <layout class="QGridLayout" name="gridLayout" columnstretch="40,60,0">
       <property name="bottomMargin">
        <number>0</number>
       </property>
@@ -55,7 +55,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0">
+         <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="20,60,20">
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
@@ -72,9 +72,22 @@
           <item>
            <widget class="QCheckBox" name="checkBox">
             <property name="text">
-             <string>Добавление связи в обе стороны</string>
+             <string>Добавление/удаление связи в обе стороны</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
@@ -124,10 +137,14 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="deixtra_button">
+          <property name="text">
+           <string>Алгоритм Дейкстры</string>
+          </property>
+         </widget>
+        </item>
        </layout>
-      </item>
-      <item row="0" column="1" rowspan="2">
-       <widget class="ZoomableGraphicsView" name="graphicsView"/>
       </item>
       <item row="1" column="0">
        <widget class="QTableView" name="matrixView">
@@ -148,6 +165,9 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="1" rowspan="2">
+       <widget class="ZoomableGraphicsView" name="graphicsView" native="true"/>
+      </item>
      </layout>
     </item>
    </layout>
@@ -164,9 +184,15 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ZoomableGraphicsView</class>
+   <extends>QWidget</extends>
+   <header>zoomablegraphicsview.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>matrixView</tabstop>
-  <tabstop>graphicsView</tabstop>
  </tabstops>
  <resources/>
  <connections/>

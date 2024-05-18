@@ -57,6 +57,10 @@ private slots:
 
     void on_checkBox_clicked(bool checked);
 
+    void on_deixtra_button_clicked();
+
+    void updateStatusBar(QString text);
+
 private:
     Ui::MainWindow *ui;
 

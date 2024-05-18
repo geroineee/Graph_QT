@@ -24,6 +24,8 @@ Q_OBJECT
 signals:
     void adjacencyMatrixChanged(const QVector<QVector<int>>& adjacencyMatrix);
 
+    void textToStatusBar(QString);
+
 
 private:
     // Создание матрицы смежности
@@ -44,6 +46,11 @@ private:
     // диалоговое окно
     QInputDialog inputDialog;
 
+    // Ответ на задачу коммивояжера
+     QVector<int> path;
+
+     // результат алгоритмов обхода
+     QVector<QVector<int>> paths;
 
 public:
     // флаг для добавления новых связей между узлами
@@ -58,7 +65,12 @@ public:
     // комивояжер
     bool needToSolveTask = false;
 
+    // Двусвязное добавление
     bool needTwoWayAddition = false;
+
+    // Алгоритм дейкстры
+    bool needDeixtra = false;
+
 
 public:
     Graph(QGraphicsScene *new_scene)
@@ -71,6 +83,10 @@ public:
         // Добавляем его на сцену
         scene->addItem(linkLayer);
     }
+
+    QVector<int> getPath(){return path;}
+
+    QVector<QVector<int>> getPaths(){return paths;}
 
     int getSelectedNodeIndex() const {return selectedNodeIndex;}
 
@@ -242,6 +258,52 @@ public:
         return path;
     }
 
+    QVector<QVector<int>> shortestPaths(int startIndex)
+    {
+        int size = nodes.size();
+        QVector<QVector<int>> paths(size, QVector<int>());
+        QVector<int> distances(size, std::numeric_limits<int>::max());
+        QVector<bool> visited(size, false);
+
+        distances[startIndex] = 0;
+
+        for (int count = 0; count < size - 1; ++count)
+        {
+            int minDistance = std::numeric_limits<int>::max();
+            int minIndex = -1;
+
+            // Выбираем узел с минимальным расстоянием
+            for (int i = 0; i < size; ++i)
+            {
+                if (!visited[i] && distances[i] <= minDistance)
+                {
+                    minDistance = distances[i];
+                    minIndex = i;
+                }
+            }
+
+            // узел с минимальным расстоянием среди непосещенных узлов.
+            int u = minIndex;
+            visited[u] = true;
+
+            // Обновляем расстояния до соседей выбранного узла
+            for (int v = 0; v < size; ++v)
+            {
+                if (!visited[v] && adjacencyMatrix[u][v] && distances[u] != std::numeric_limits<int>::max() &&
+                    distances[u] + adjacencyMatrix[u][v] < distances[v])
+                {
+                    distances[v] = distances[u] + adjacencyMatrix[u][v];
+                    paths[v] = paths[u]; // Копируем путь до u
+                    paths[v].append(v); // Добавляем узел v в путь
+                }
+            }
+        }
+
+        // Устанавливаем пустой путь для начального узла
+        paths[startIndex].clear();
+        return paths;
+    }
+
         // Метод для подсветки узлов в соответствии с заданным путем
     void highlightPath(const QVector<int>& path)
     {
@@ -294,7 +356,7 @@ public slots:
     void handleNodePressed(int index)
     {
         // --------------------------Добавление связи-----------------------------------------------------------------
-        if (!needToLink && !needToDelete && !needToDeleteLink && !needToSolveTask)
+        if (!needToLink && !needToDelete && !needToDeleteLink && !needToSolveTask && !needDeixtra)
         {
             // Очистка цвета узлов
             clearNodesColor();
@@ -326,6 +388,7 @@ public slots:
             else if (needToDeleteLink)
             {
                 adjacencyMatrix[index][selectedNodeIndex] = 0;
+                if (needTwoWayAddition) adjacencyMatrix[selectedNodeIndex][index] = 0;
                 needToDeleteLink = false;
             }
 
@@ -354,12 +417,21 @@ public slots:
         else if (needToSolveTask)
         {
             // вызов метода решения задачи Комивояжера, принимающий индекс узла в матрице смежности
-            qDebug() << "Вы решили задачу комивояжера!";
+            qDebug() << "Вы решили задачу коммивояжера!";
 
             // Здесь можно обработать результат, например, вывести путь или обновить интерфейс
             QVector<int> path = solveTravelingSalesmanProblem(index);
 
             qDebug() << path;
+
+            QString path_text = "Ответ на задачу коммивояжера: " + QString::number(path[0] + 1);
+
+            for (int i = 1; i < path.size(); ++i)
+            {
+                path_text += " -> " +  QString::number(path[i] + 1);
+            }
+
+            emit textToStatusBar(path_text);
 
             // Отрисовка найденного пути
             highlightPath(path);
@@ -367,13 +439,28 @@ public slots:
             needToSolveTask = false;
         }
 
-        // --------------------------------------------------------------------------------------------------------------------
+        // --------------------------------Алгоритм Дейкстры---------------------------------------------------------------
+
+        else if (needDeixtra)
+        {
+            qDebug() << "Алгоритм Дейкстры!";
+
+            QVector<QVector<int>> paths = shortestPaths(index);
+
+            for (int i = 0; i < paths.size(); ++i)
+            {
+                qDebug() << paths[i];
+            }
+
+            needDeixtra = false;
+        }
+
+        // ----------------------------------------------------------------------------------------------------------------
 
         nodes[index]->m_isMovable = true;
 
         // отрисовка связей
         drawLinks();
-
 
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
