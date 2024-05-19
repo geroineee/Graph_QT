@@ -47,8 +47,6 @@ private slots:
     // отрисовка изменений в матрице
     void onMatrixCellChanged(const QModelIndex &index);
 
-    void updateScene();
-
     void on_delete_node_button_clicked();
 
     void on_delete_link_button_clicked();
@@ -62,6 +60,9 @@ private slots:
     void updateStatusBar(QString text);
 
     void on_randomize_button_clicked();
+
+    void updateScene();
+
 
 private:
     Ui::MainWindow *ui;

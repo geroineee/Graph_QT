@@ -4,6 +4,8 @@
 #include <QVector>
 #include <QGraphicsScene>
 
+#include <QMessageBox>
+
 #include <QTimer>
 #include <QThread>
 #include <QInputDialog>
@@ -103,6 +105,7 @@ public:
             {
                 scene->addItem(nodes[i]);
             }
+            nodes[i]->update();
         }
     }
 
@@ -112,6 +115,7 @@ public:
        // Удаляем все связи из слоя
        clearLinks();
 
+       drawNodes();
        for (int i = 0; i < adjacencyMatrix.size(); ++i)
        {
            for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
@@ -128,6 +132,7 @@ public:
                }
            }
        }
+
        scene->update();
     }
 
@@ -183,7 +188,7 @@ public:
         // Удаление узла из сцены и вектора узлов
         scene->removeItem(nodes[index]);
         delete nodes[index];
-        nodes.remove(index);
+        nodes.erase(nodes.begin() + index);
 
         // Обновление индексов узлов
         for (int i = index; i < nodes.size(); ++i)
@@ -192,20 +197,11 @@ public:
         }
 
         // Обновление матрицы смежности
-        for (int i = index; i < nodes.size(); ++i)
-        {
-            for (int j = 0; j < nodes.size(); ++j)
-            {
-                adjacencyMatrix[i][j] = adjacencyMatrix[i + 1][j];
-                adjacencyMatrix[j][i] = adjacencyMatrix[j][i + 1];
-            }
-        }
+        adjacencyMatrix.erase(adjacencyMatrix.begin() + index); // Удаление строки
 
-        // Удаление последней строки и столбца из матрицы
-        adjacencyMatrix.pop_back();
         for (auto& row : adjacencyMatrix)
         {
-            row.pop_back();
+            row.erase(row.begin() + index); // Удаление столбца
         }
 
         // Отправляем сигнал об изменении матрицы смежности
@@ -215,8 +211,9 @@ public:
     // Решение задачи коммивояжера
     QVector<int> solveTravelingSalesmanProblem(int startIndex)
     {
+        // Возвращаем пустой вектор, если граф пуст или индекс некорректен
         if (nodes.isEmpty() || startIndex < 0 || startIndex >= nodes.size())
-            return QVector<int>(); // Возвращаем пустой вектор, если граф пуст или индекс некорректен
+            return QVector<int>();
 
         QVector<bool> visited(nodes.size(), false);
         QVector<int> path;
@@ -256,6 +253,20 @@ public:
         path.append(startIndex);
 
         return path;
+    }
+
+    int calculatePathWeight(const QVector<int>& path)
+    {
+        int totalWeight = 0;
+
+        for (int i = 0; i < path.size() - 1; ++i)
+        {
+            int fromNode = path[i];
+            int toNode = path[i + 1];
+            totalWeight += adjacencyMatrix[fromNode][toNode];
+        }
+
+        return totalWeight;
     }
 
     QVector<QVector<int>> shortestPaths(int startIndex)
@@ -301,6 +312,12 @@ public:
 
         // Устанавливаем пустой путь для начального узла
         paths[startIndex].clear();
+
+        for (int i = 0; i < paths.size(); ++i)
+        {
+            paths[i].push_front(startIndex);
+        }
+
         return paths;
     }
 
@@ -310,7 +327,7 @@ public:
 
         for (int i = 0; i < path.size(); ++i)
         {
-            QTimer::singleShot( i*800, [this, path, i]()
+            QTimer::singleShot( i*1000, [this, path, i]()
             {
                 int prev_index = -1;
                 if ((i - 1) >= 0)
@@ -334,8 +351,9 @@ public:
                 }
             });
         }
+
         // очистка цвета узлов
-        QTimer::singleShot(path.size() * 800 + 500, this, [=]() { clearNodesColor(); });
+        QTimer::singleShot(path.size() * 1000 + 500, this, [=]() { clearNodesColor(); });
 
     }
 
@@ -381,10 +399,10 @@ public:
         }
 
         // Отрисовка узлов
-        drawNodes();
+        drawLinks();
 
         // Отрисовка связей
-        drawLinks();
+        drawNodes();
 
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
@@ -476,14 +494,22 @@ public slots:
 
             qDebug() << path;
 
-            QString path_text = "Ответ на задачу коммивояжера: " + QString::number(path[0] + 1);
+            // Формирование строки для вывода в statusbar
+            QString *path_text = new QString;
+
+            *path_text = "Ответ на задачу коммивояжера: " + QString::number(path[0] + 1);
 
             for (int i = 1; i < path.size(); ++i)
             {
-                path_text += " -> " +  QString::number(path[i] + 1);
+                *path_text += " -> " +  QString::number(path[i] + 1);
             }
 
-            emit textToStatusBar(path_text);
+            // Вычисление веса всего пути и запись в statusbar
+            *path_text += ". Длина вычисленного пути: " + QString::number(calculatePathWeight(path));
+
+            emit textToStatusBar(*path_text);
+
+            delete path_text;
 
             // Отрисовка найденного пути
             highlightPath(path);
@@ -499,19 +525,42 @@ public slots:
 
             QVector<QVector<int>> paths = shortestPaths(index);
 
+            qDebug() << paths;
+
+            QString *text = new QString;
+
+            *text = "Кратчайшие пути из узла во все другие.\n";
+
             for (int i = 0; i < paths.size(); ++i)
             {
-                qDebug() << paths[i];
+                if (paths[i].size() != 1)
+                {
+                    *text += "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ":\n";
+
+                    *text += QString::number(paths[i][0] + 1);
+                    for (int j = 1; j < paths[i].size(); ++j)
+                    {
+                        *text += " -> " + QString::number(paths[i][j] + 1);
+                    }
+                    *text += ".\nСтоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
+                }
             }
+
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Алгоритм Дейкстры");
+            msgBox.setInformativeText(*text);
+            msgBox.adjustSize();
+            msgBox.exec();
+
+            delete text;
 
             needDeixtra = false;
         }
 
         // ----------------------------------------------------------------------------------------------------------------
 
-        nodes[index]->m_isMovable = true;
-
         // отрисовка связей
+        drawNodes();
         drawLinks();
 
         // Отправляем сигнал об изменении матрицы смежности
@@ -537,6 +586,10 @@ public slots:
         // Очистка узлов
         clearLinks();
 
+        // обновление сцены
+        drawNodes();
+        drawLinks();
+
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
     }
@@ -544,6 +597,7 @@ public slots:
     // слот для обновления связей
     void handleUpdateLinksSignal()
      {
+        drawNodes();
         drawLinks();
      }
 
@@ -561,3 +615,61 @@ void clearNodesColor()
 };
 
 #endif // GRAPH_H
+
+
+//#ifndef GRAPH_H
+//#define GRAPH_H
+
+//#include <QObject>
+//#include <QVector>
+//#include <QGraphicsScene>
+//#include "Node.h"
+
+//class Graph : public QObject
+//{
+//    Q_OBJECT
+
+//signals:
+//    void adjacencyMatrixChanged(const QVector<QVector<int>>& adjacencyMatrix);
+//    void textToStatusBar(QString);
+
+//public:
+//    Graph(QGraphicsScene *new_scene);
+//    void drawNodes();
+//    void drawLinks();
+//    void addNode();
+//    void removeNode(int index);
+//    QVector<int> solveTravelingSalesmanProblem(int startIndex);
+//    int calculatePathWeight(const QVector<int>& path);
+//    QVector<QVector<int>> shortestPaths(int startIndex);
+//    void highlightPath(const QVector<int>& path);
+//    void randomizeAdjacencyMatrix(int size);
+//    void clearLinks();
+//    void handleNodePressed(int index);
+//    void clearScene();
+//    void handleUpdateLinksSignal();
+//    void clearNodesColor();
+
+//    QVector<int> getPath(){return path;}
+//    QVector<QVector<int>> getPaths(){return paths;}
+//    int getSelectedNodeIndex() const {return selectedNodeIndex;}
+//    QVector<QVector<int>>& getMatrix() {return adjacencyMatrix;}
+
+//private:
+//    QVector<QVector<int>> adjacencyMatrix;
+//    QVector<Node*> nodes;
+//    int selectedNodeIndex = -1;
+//    QGraphicsScene *scene;
+//    QGraphicsItemGroup* linkLayer;
+//    QInputDialog inputDialog;
+//    QVector<int> path;
+//    QVector<QVector<int>> paths;
+//    bool needToLink = false;
+//    bool needToDelete = false;
+//    bool needToDeleteLink = false;
+//    bool needToSolveTask = false;
+//    bool needTwoWayAddition = false;
+//    bool needDeixtra = false;
+//};
+
+//#endif // GRAPH_H

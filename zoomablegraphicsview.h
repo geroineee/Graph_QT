@@ -9,6 +9,7 @@
 
 class ZoomableGraphicsView : public QGraphicsView
 {
+
 public:
     ZoomableGraphicsView(QWidget *parent = nullptr) : QGraphicsView(parent), minZoomFactor(0.5), maxZoomFactor(2.0) {}
 
@@ -33,6 +34,7 @@ protected:
             {
                scale(1 / 1.2, 1 / 1.2);
             }
+
         }
         else
         {

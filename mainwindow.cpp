@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // коннект обновления статусбара из Graph
     connect(graph, &Graph::textToStatusBar, this, &MainWindow::updateStatusBar);
 
-
     //  ----------------------------------------------Матрица смежности----------------------------------------------------------
 
         // модель для матрицы смежности
@@ -51,8 +50,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // запуск таймера
 //    updateTimer->start(updateInterval);
 
-    // кнопки
-
+    // Стиль кнопок
     ui->delete_link_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
     ui->delete_node_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
     ui->draw_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
@@ -76,7 +74,8 @@ void MainWindow::on_draw_button_clicked()
     graph->addNode();
 
     // отрисовка узлов
-    graph->drawNodes();
+    updateScene();
+
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -125,13 +124,13 @@ void MainWindow::onMatrixCellChanged(const QModelIndex &index)
     graph->getMatrix()[row][column] = value;
 
     // Перерисовываем граф
-    graph->drawLinks();
+    updateScene();
 }
 
 void MainWindow::updateScene()
 {
-    graph->drawNodes();
     graph->drawLinks();
+    graph->drawNodes();
 }
 
 void MainWindow::on_delete_node_button_clicked()
@@ -238,6 +237,6 @@ void MainWindow::updateStatusBar(QString text)
 void MainWindow::on_randomize_button_clicked()
 {
     qDebug() << "Рандомизация.";
-    graph->randomizeAdjacencyMatrix(10);
+    graph->randomizeAdjacencyMatrix(6);
 }
 

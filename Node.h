@@ -7,6 +7,7 @@
 
 #include <QDebug>
 
+#include <cmath>
 
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
@@ -20,7 +21,6 @@ signals:
     void nodePressed(int index); // Объявление сигнала нажатия на узел
     void updateLinksSignal(); // сигнал на обновление связи
 
-
 public:
     Node(int index, QPointF position, QString data, int size)
     {
@@ -30,6 +30,7 @@ public:
         m_size = size;
         m_brush = Qt::white;
         m_isMovable = true;
+
 
         setFlag(ItemIsMovable, true); // Устанавливаем флаг, позволяющий перемещать узлы
     }
@@ -51,6 +52,7 @@ public:
         Q_UNUSED(option)
         Q_UNUSED(widget)
 
+
         QPen pen;
         pen.setWidth(2);
         painter->setPen(pen);
@@ -60,16 +62,13 @@ public:
         painter->drawEllipse(-m_size/2, -m_size/2, m_size, m_size);
         painter->drawText(-10, 10, m_data);
 
-
         // прямоугольник с номером узла
         QRectF rect(boundingRect().topLeft(), QSizeF(15, 15));
-
 
         painter->setBrush(Qt::white);
         painter->drawRect(rect);
         painter->setFont(QFont("Arial", 9));
         painter->drawText(rect, Qt::AlignCenter, QString::number(m_index+1));
-
     }
 
     // перемещение узла по зажатию ЛКМ
@@ -117,4 +116,41 @@ private:
 
 };
 
-#endif // NODE_H
+#endif //NODE_H
+
+//#ifndef NODE_H
+//#define NODE_H
+
+//#include <QGraphicsItem>
+//#include <QPainter>
+//#include <QGraphicsSceneMouseEvent>
+
+//class Node : public QObject, public QGraphicsItem
+//{
+//    Q_OBJECT
+
+//signals:
+//    void nodePressed(int index);
+//    void updateLinksSignal();
+
+//public:
+//    Node(int index, QPointF position, QString data, int size);
+//    QRectF boundingRect() const override;
+//    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+//    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+//    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+//    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
+//    int getSize() {return m_size;}
+//    void isMovableNode(bool flag) {m_isMovable = flag;}
+
+//private:
+//    int m_index;
+//    QBrush m_brush;
+//    bool m_isMovable;
+//    int m_size;
+//    QPointF m_position;
+//    QString m_data;
+//};
+
+//#endif // NODE_H

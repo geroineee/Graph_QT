@@ -34,6 +34,24 @@ public:
         // Получение начальных координат
         QLineF line = calculateLine();
 
+
+        //------------------------------
+        double angle = atan2(line.dy(), line.dx());
+
+        QPointF dest = line.pointAt(0);
+
+        int radius = destNode->getSize() / 2;
+
+        qreal delta_y = sin(angle) * radius;
+        qreal delta_x = cos(angle) * radius;
+
+        dest = QPointF{delta_x, delta_y};
+
+        line.setP1(line.p1() + dest);
+        line.setP2(line.p2() - dest);
+
+        //------------------------------
+
         // Отрисовка линии
         painter->drawLine(line);
 
