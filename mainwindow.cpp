@@ -41,15 +41,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // --------------------------------------------------------------------------------------------------------------------------
 
-    // инициализация таймера
-//    updateTimer = new QTimer(this);
-
-    // коннект таймера к слоту для обновления сцены
-//    connect(updateTimer, &QTimer::timeout, this, &MainWindow::updateScene);
-
-    // запуск таймера
-//    updateTimer->start(updateInterval);
-
     // Стиль кнопок
     ui->delete_link_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
     ui->delete_node_button->setStyleSheet("QPushButton::pressed { background-color: lightgray; border: 1px solid black; }");
@@ -70,6 +61,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_draw_button_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     qDebug() << "Добавление узла.";
     graph->addNode();
 
@@ -78,14 +72,21 @@ void MainWindow::on_draw_button_clicked()
 
 }
 
+
 void MainWindow::on_pushButton_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     graph->needToLink = true;
 }
 
 
 void MainWindow::on_clear_button_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     qDebug() << "Очистка.";
 }
 
@@ -135,6 +136,9 @@ void MainWindow::updateScene()
 
 void MainWindow::on_delete_node_button_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     // переключение
     bool &value = graph->needToDelete;
     if (value)
@@ -148,17 +152,14 @@ void MainWindow::on_delete_node_button_clicked()
         value = true;
         qDebug() << "Удаление узла. on";
     }
-
-    // Выключение других функций
-    graph->needToDeleteLink = false;
-    graph->needToLink = false;
-    graph->needToSolveTask = false;
-    graph->needDeixtra = false;
 }
 
 
 void MainWindow::on_delete_link_button_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
      // переключение
      bool &value = graph->needToDeleteLink;
      if (value)
@@ -172,15 +173,13 @@ void MainWindow::on_delete_link_button_clicked()
          qDebug() << "Удаление связи. on";
      }
 
-     // Выключение других функций
-     graph->needToLink = false;
-     graph->needToSolveTask = false;
-     graph->needToDelete = false;
-     graph->needDeixtra = false;
 }
 
 void MainWindow::on_pushButton_2_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     // переключение
     bool &value = graph->needToSolveTask;
     if (value)
@@ -194,11 +193,6 @@ void MainWindow::on_pushButton_2_clicked()
         qDebug() << "Коммивояжер. on";
     }
 
-    // Выключение других функций
-    graph->needToDeleteLink = false;
-    graph->needToLink = false;
-    graph->needToDelete = false;
-    graph->needDeixtra = false;
 }
 
 void MainWindow::on_checkBox_clicked(bool checked)
@@ -209,6 +203,9 @@ void MainWindow::on_checkBox_clicked(bool checked)
 
 void MainWindow::on_deixtra_button_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     // переключение
     bool &value = graph->needDeixtra;
     if (value)
@@ -221,12 +218,6 @@ void MainWindow::on_deixtra_button_clicked()
         value = true;
         qDebug() << "Дейкстра. on";
     }
-
-    // Выключение других функций
-    graph->needToDeleteLink = false;
-    graph->needToLink = false;
-    graph->needToSolveTask = false;
-    graph->needToDelete = false;
 }
 
 void MainWindow::updateStatusBar(QString text)
@@ -236,7 +227,70 @@ void MainWindow::updateStatusBar(QString text)
 
 void MainWindow::on_randomize_button_clicked()
 {
+    // Выключение других функций
+    graph->turn_off_buttons();
+
     qDebug() << "Рандомизация.";
     graph->randomizeAdjacencyMatrix(6);
+}
+
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    // Выключение других функций
+    graph->turn_off_buttons();
+
+    // переключение
+    bool &value = graph->needInDeep;
+    if (value)
+    {
+        value = false;
+        qDebug() << "Обход в глубину. off";
+    }
+    else
+    {
+        value = true;
+        qDebug() << "Обход в глубину. on";
+    }
+}
+
+
+void MainWindow::on_butti_in_width_clicked()
+{
+    // Выключение других функций
+    graph->turn_off_buttons();
+
+    // переключение
+    bool &value = graph->needInWidth;
+    if (value)
+    {
+        value = false;
+        qDebug() << "Обход в ширину. off";
+    }
+    else
+    {
+        value = true;
+        qDebug() << "Обход в ширину. on";
+    }
+}
+
+
+void MainWindow::on_button_floid_clicked()
+{
+    // Выключение других функций
+    graph->turn_off_buttons();
+
+    // переключение
+    bool &value = graph->needFloid;
+    if (value)
+    {
+        value = false;
+        qDebug() << "Алгоритм Флойда. off";
+    }
+    else
+    {
+        value = true;
+        qDebug() << "Алгоритм Флойда. on";
+    }
 }
 

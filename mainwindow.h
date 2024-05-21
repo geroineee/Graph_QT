@@ -64,6 +64,12 @@ private slots:
     void updateScene();
 
 
+    void on_pushButton_3_clicked();
+
+    void on_butti_in_width_clicked();
+
+    void on_button_floid_clicked();
+
 private:
     Ui::MainWindow *ui;
 

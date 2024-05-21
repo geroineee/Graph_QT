@@ -2,6 +2,7 @@
 #define GRAPH_H
 
 #include <QVector>
+#include <QQueue>
 #include <QGraphicsScene>
 
 #include <QMessageBox>
@@ -73,6 +74,15 @@ public:
     // Алгоритм дейкстры
     bool needDeixtra = false;
 
+    // Алгоритм Флойда
+    bool needFloid = false;
+
+    // Обход в глубину
+    bool needInDeep = false;
+
+    // Обход в ширину
+    bool needInWidth = false;
+
 
 public:
     Graph(QGraphicsScene *new_scene)
@@ -96,6 +106,16 @@ public:
 
 
 public:
+    void turn_off_buttons()
+    {
+        QVector<bool*> all_buttons = { &needToLink, &needToDelete, &needToDeleteLink, &needToSolveTask, &needTwoWayAddition,
+                                       &needDeixtra, &needInDeep, &needInWidth, &needFloid };
+        for (bool* flag : all_buttons)
+        {
+            *flag = false;
+        }
+    }
+
     // отрисовка узлов
     void drawNodes()
     {
@@ -354,7 +374,53 @@ public:
 
         // очистка цвета узлов
         QTimer::singleShot(path.size() * 1000 + 500, this, [=]() { clearNodesColor(); });
+    }
 
+    // Обход в глубину
+    void depthFirstSearch(int startIndex, QVector<bool>& visited, QVector<int>& path)
+    {
+        if (startIndex < 0 || startIndex >= nodes.size() || visited[startIndex])
+            return;
+
+        // Отмечаем узел как посещенный
+        visited[startIndex] = true;
+
+        // Добавляем узел в путь
+        path.append(startIndex);
+
+        // Рекурсивно обходим всех непосещенных соседей
+        for (int i = 0; i < nodes.size(); ++i)
+        {
+            if (adjacencyMatrix[i][startIndex] > 0 && !visited[i])
+            {
+                depthFirstSearch(i, visited, path);
+            }
+        }
+    }
+
+    // Обход в ширину
+    void widthFirstCrawl(int startIndex, QVector<int>& path)
+    {
+        QVector<bool> visited(nodes.size(), false);
+        QQueue<int> queue;
+
+        visited[startIndex] = true;
+        queue.enqueue(startIndex);
+
+        while (!queue.isEmpty())
+        {
+            int currentNode = queue.dequeue();
+            path.append(currentNode);
+
+            for (int i = 0; i < nodes.size(); ++i)
+            {
+                if (adjacencyMatrix[i][currentNode] > 0 && !visited[i])
+                {
+                    visited[i] = true;
+                    queue.enqueue(i);
+                }
+            }
+        }
     }
 
     // Рандомизация матрицы и создания узлов
@@ -426,7 +492,7 @@ public slots:
     void handleNodePressed(int index)
     {
         // --------------------------Добавление связи-----------------------------------------------------------------
-        if (!needToLink && !needToDelete && !needToDeleteLink && !needToSolveTask && !needDeixtra)
+        if (!needToLink && !needToDelete && !needToDeleteLink && !needToSolveTask && !needDeixtra && !needInDeep && !needInWidth && !needFloid)
         {
             // Очистка цвета узлов
             clearNodesColor();
@@ -439,8 +505,6 @@ public slots:
             bool confirm = true;
             if (needToLink)
             {
-                qDebug() << "номер нажатого:" << index + 1;
-
                 // Предложение пользователю ввести вес связи
                 QString text = QInputDialog::getText(nullptr, "Введите вес связи",
                                                      "Вес связи:", QLineEdit::Normal,
@@ -486,6 +550,8 @@ public slots:
 
         else if (needToSolveTask)
         {
+            needToSolveTask = false;
+
             // вызов метода решения задачи Комивояжера, принимающий индекс узла в матрице смежности
             qDebug() << "Вы решили задачу коммивояжера!";
 
@@ -513,14 +579,14 @@ public slots:
 
             // Отрисовка найденного пути
             highlightPath(path);
-
-            needToSolveTask = false;
         }
 
         // --------------------------------Алгоритм Дейкстры---------------------------------------------------------------
 
         else if (needDeixtra)
         {
+            needDeixtra = false;
+
             qDebug() << "Алгоритм Дейкстры!";
 
             QVector<QVector<int>> paths = shortestPaths(index);
@@ -553,11 +619,49 @@ public slots:
             msgBox.exec();
 
             delete text;
-
-            needDeixtra = false;
         }
 
-        // ----------------------------------------------------------------------------------------------------------------
+        // --------------------------------Алгоритм Флойда---------------------------------------------------------------
+
+        else if (needFloid)
+        {
+            needFloid = false;
+
+            // тут надо выполнить алгоритм флойда
+        }
+
+        // ----------------------------------------Обход в глубину---------------------------------------------------
+
+        else if (needInDeep)
+        {
+            needInDeep = false;
+
+            qDebug() << "Вы круто обошли граф в глубину";
+
+            QVector<bool> visited(nodes.size(), false);
+            depthFirstSearch(index, visited, path);
+
+            qDebug() << path;
+            highlightPath(path);
+            path.clear();
+        }
+
+        // ----------------------------------------Обход в ширину---------------------------------------------------
+
+        else if (needInWidth)
+        {
+            needInWidth = false;
+
+            qDebug() << "Вы круто обошли граф в ширину";
+
+            widthFirstCrawl(index, path);
+
+            qDebug() << path;
+            highlightPath(path);
+            path.clear();
+        }
+
+        // ----------------------------------------------------------------------------------------------------------
 
         // отрисовка связей
         drawNodes();
@@ -615,61 +719,3 @@ void clearNodesColor()
 };
 
 #endif // GRAPH_H
-
-
-//#ifndef GRAPH_H
-//#define GRAPH_H
-
-//#include <QObject>
-//#include <QVector>
-//#include <QGraphicsScene>
-//#include "Node.h"
-
-//class Graph : public QObject
-//{
-//    Q_OBJECT
-
-//signals:
-//    void adjacencyMatrixChanged(const QVector<QVector<int>>& adjacencyMatrix);
-//    void textToStatusBar(QString);
-
-//public:
-//    Graph(QGraphicsScene *new_scene);
-//    void drawNodes();
-//    void drawLinks();
-//    void addNode();
-//    void removeNode(int index);
-//    QVector<int> solveTravelingSalesmanProblem(int startIndex);
-//    int calculatePathWeight(const QVector<int>& path);
-//    QVector<QVector<int>> shortestPaths(int startIndex);
-//    void highlightPath(const QVector<int>& path);
-//    void randomizeAdjacencyMatrix(int size);
-//    void clearLinks();
-//    void handleNodePressed(int index);
-//    void clearScene();
-//    void handleUpdateLinksSignal();
-//    void clearNodesColor();
-
-//    QVector<int> getPath(){return path;}
-//    QVector<QVector<int>> getPaths(){return paths;}
-//    int getSelectedNodeIndex() const {return selectedNodeIndex;}
-//    QVector<QVector<int>>& getMatrix() {return adjacencyMatrix;}
-
-//private:
-//    QVector<QVector<int>> adjacencyMatrix;
-//    QVector<Node*> nodes;
-//    int selectedNodeIndex = -1;
-//    QGraphicsScene *scene;
-//    QGraphicsItemGroup* linkLayer;
-//    QInputDialog inputDialog;
-//    QVector<int> path;
-//    QVector<QVector<int>> paths;
-//    bool needToLink = false;
-//    bool needToDelete = false;
-//    bool needToDeleteLink = false;
-//    bool needToSolveTask = false;
-//    bool needTwoWayAddition = false;
-//    bool needDeixtra = false;
-//};
-
-//#endif // GRAPH_H
