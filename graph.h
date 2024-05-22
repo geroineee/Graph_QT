@@ -283,7 +283,7 @@ public:
         {
             int fromNode = path[i];
             int toNode = path[i + 1];
-            totalWeight += adjacencyMatrix[fromNode][toNode];
+            totalWeight += adjacencyMatrix[toNode][fromNode];
         }
 
         return totalWeight;
@@ -320,10 +320,10 @@ public:
             // Обновляем расстояния до соседей выбранного узла
             for (int v = 0; v < size; ++v)
             {
-                if (!visited[v] && adjacencyMatrix[u][v] && distances[u] != std::numeric_limits<int>::max() &&
-                    distances[u] + adjacencyMatrix[u][v] < distances[v])
+                if (!visited[v] && adjacencyMatrix[v][u] && distances[u] != std::numeric_limits<int>::max() &&
+                    distances[u] + adjacencyMatrix[v][u] < distances[v])
                 {
-                    distances[v] = distances[u] + adjacencyMatrix[u][v];
+                    distances[v] = distances[u] + adjacencyMatrix[v][u];
                     paths[v] = paths[u]; // Копируем путь до u
                     paths[v].append(v); // Добавляем узел v в путь
                 }
@@ -626,8 +626,41 @@ public slots:
         else if (needFloid)
         {
             needFloid = false;
+            QStringList all_paths;
 
-            // тут надо выполнить алгоритм флойда
+            for (int index = 0; index < nodes.size(); index++)
+            {
+                QVector<QVector<int>> paths = shortestPaths(index);
+                for (int i = 0; i < paths.size(); ++i)
+                {
+                    if (paths[i].size() != 1)
+                    {
+                        QString text = "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ":\n";
+
+                        text += QString::number(paths[i][0] + 1);
+                        for (int j = 1; j < paths[i].size(); ++j)
+                        {
+                            text += " -> " + QString::number(paths[i][j] + 1);
+                        }
+                        text += ".\nСтоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
+                        all_paths.append(text);
+                    }
+                }
+            }
+
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("Алгоритм Флойда");
+
+            QString text_for_msg = "";
+            for (int i = 0; i < all_paths.size(); i++)
+            {
+                text_for_msg += all_paths[i];
+            }
+
+            msgBox.setInformativeText(text_for_msg);
+            msgBox.adjustSize();
+            msgBox.exec();
+
         }
 
         // ----------------------------------------Обход в глубину---------------------------------------------------
