@@ -231,7 +231,7 @@ void MainWindow::on_randomize_button_clicked()
     graph->turn_off_buttons();
 
     qDebug() << "Рандомизация.";
-    graph->randomizeAdjacencyMatrix(6);
+    graph->randomizeAdjacencyMatrix(7);
 }
 
 

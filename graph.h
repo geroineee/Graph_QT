@@ -449,11 +449,23 @@ public:
             }
         }
 
+        QPointF center = {600/2, 576/2};
+
+        QRect rect(600/2, 576/2, 3, 3);
+
+        scene->addRect(rect);
+
+        qreal shift_angle = 360 / size;
+        qreal lenght =  30 * size;
+
         // Создание узлов
         nodes.clear();
         for (int i = 0; i < size; ++i)
         {
-            QPointF position(qrand() % 400, qrand() % 400); // Случайная позиция на сцене
+            qreal angle = i * shift_angle;
+            qreal delta_y = sin(angle / 57.295779513) * lenght;
+            qreal delta_x = cos(angle / 57.295779513) * lenght;
+            QPointF position(center.x() + delta_x, center.y() + delta_y); // Случайная позиция на сцене
             QString data = QString::number(i + 1); // Данные узла
             Node* node = new Node(i, position, data, 60); // Создание узла
             node->setPos(position);
