@@ -12,6 +12,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     graph = new Graph(scene);
     ui->graphicsView->setScene(scene);
 
+    ui->label_matrixName->setAlignment(Qt::AlignCenter);
+    ui->label_matrixName->setText("Матрица смежности");
+
     // коннект кнопки "очистить"
     connect(ui->clear_button, &QPushButton::clicked, graph, &Graph::clearScene);
 
@@ -22,15 +25,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
         // модель для матрицы смежности
         matrixModel = new QStandardItemModel(this);
+        reachMatrixModel = new QStandardItemModel(this);
+        strongMatrixModel = new QStandardItemModel(this);
 
         // установка модели к обьекту QTableView
         ui->matrixView->setModel(matrixModel);
+        ui->tableView_reachMatrix->setModel(reachMatrixModel);
+        ui->tableView_strongMatrix->setModel(strongMatrixModel);
+
+        ui->tableView_reachMatrix->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->tableView_strongMatrix->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
         // минимальный размер колонок и столбцов QTableView
         ui->matrixView->verticalHeader()->setMinimumSectionSize(5);
         ui->matrixView->horizontalHeader()->setMinimumSectionSize(5);
 
-        // коннеут для изменения графа при изменении матрицы
+        ui->tableView_reachMatrix->verticalHeader()->setMinimumSectionSize(5);
+        ui->tableView_reachMatrix->horizontalHeader()->setMinimumSectionSize(5);
+
+        ui->tableView_strongMatrix->verticalHeader()->setMinimumSectionSize(5);
+        ui->tableView_strongMatrix->horizontalHeader()->setMinimumSectionSize(5);
+
+        // коннект для изменения графа при изменении матрицы
         connect(matrixModel, &QStandardItemModel::dataChanged, this, &MainWindow::onMatrixCellChanged);
 
         // коннект матрицы смежности
@@ -64,7 +80,6 @@ void MainWindow::on_draw_button_clicked()
     // Выключение других функций
     graph->turn_off_buttons();
 
-    qDebug() << "Добавление узла.";
     graph->addNode();
 
     // отрисовка узлов
@@ -86,33 +101,54 @@ void MainWindow::on_clear_button_clicked()
 {
     // Выключение других функций
     graph->turn_off_buttons();
+    graph->clearScene();
+}
 
-    qDebug() << "Очистка.";
+void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix)
+{
+    // Центрирование полей
+    CenterTextDelegate *delegate = new CenterTextDelegate;
+    tableView->setItemDelegate(delegate);
+
+    model->clear();
+    model->setColumnCount(matrix.size());
+    model->setRowCount(matrix.size());
+
+    for (int i = 0; i < matrix.size(); ++i)
+    {
+        for (int j = 0; j < matrix[i].size(); ++j)
+        {
+            QStandardItem *item = new QStandardItem(QString::number(matrix[i][j]));
+            model->setItem(i, j, item);
+        }
+    }
+
+    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание все колонки
+    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание все строки
 }
 
 void MainWindow::updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix)
 {
-    // Центрирование полей
-    CenterTextDelegate *delegate = new CenterTextDelegate;
-    ui->matrixView->setItemDelegate(delegate);
-
-    // Очистка
-    matrixModel->clear();
-    matrixModel->setColumnCount(adjacencyMatrix.size());
-    matrixModel->setRowCount(adjacencyMatrix.size());
-
-    for (int i = 0; i < adjacencyMatrix.size(); ++i)
-    {
-        for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
-        {
-            QStandardItem *item = new QStandardItem(QString::number(adjacencyMatrix[i][j]));
-            matrixModel->setItem(i, j, item);
-        }
+    updateMatrixView(ui->matrixView, matrixModel, adjacencyMatrix);
+    if (!adjacencyMatrix.isEmpty()){
+        updateReachabilityMatrix(adjacencyMatrix);
+    } else {
+        reachMatrixModel->clear();
+        strongMatrixModel->clear();
     }
+}
 
-    // Установка ширины колонок и высоты строк на всю ширину и высоту окна QTableView
-    ui->matrixView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягиваем все колонки
-    ui->matrixView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягиваем все строки
+void MainWindow::updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix)
+{
+    QVector<QVector<int>> reachabilityMatrix = getReachabilityMatrix(adjacencyMatrix);
+    updateMatrixView(ui->tableView_reachMatrix, reachMatrixModel, reachabilityMatrix);
+    updateStrongConnectedMatrix(reachabilityMatrix);
+}
+
+void MainWindow::updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix)
+{
+    QVector<QVector<int>> strongConnectedMatrix = getStrongConnectedMatrix(reachabilityMatrix);
+    updateMatrixView(ui->tableView_strongMatrix, strongMatrixModel, strongConnectedMatrix);
 }
 
 void MainWindow::onMatrixCellChanged(const QModelIndex &index)
@@ -124,6 +160,13 @@ void MainWindow::onMatrixCellChanged(const QModelIndex &index)
     // Обновляем матрицу смежности
     graph->getMatrix()[row][column] = value;
 
+    if (!graph->getMatrix().isEmpty()){
+        updateReachabilityMatrix(graph->getMatrix());
+    } else {
+        reachMatrixModel->clear();
+        strongMatrixModel->clear();
+    }
+
     // Перерисовываем граф
     updateScene();
 }
@@ -131,7 +174,7 @@ void MainWindow::onMatrixCellChanged(const QModelIndex &index)
 void MainWindow::updateScene()
 {
     graph->drawLinks();
-    graph->drawNodes();
+//    graph->drawNodes();
 }
 
 void MainWindow::on_delete_node_button_clicked()
@@ -141,17 +184,7 @@ void MainWindow::on_delete_node_button_clicked()
 
     // переключение
     bool &value = graph->needToDelete;
-    if (value)
-    {
-        value = false;
-        qDebug() << "Удаление узла. off";
-    }
-
-    else
-    {
-        value = true;
-        qDebug() << "Удаление узла. on";
-    }
+    value = !value;
 }
 
 
@@ -162,16 +195,7 @@ void MainWindow::on_delete_link_button_clicked()
 
      // переключение
      bool &value = graph->needToDeleteLink;
-     if (value)
-     {
-         value = false;
-         qDebug() << "Удаление связи. off";
-     }
-     else
-     {
-         value = true;
-         qDebug() << "Удаление связи. on";
-     }
+     value = !value;
 
 }
 
@@ -182,16 +206,7 @@ void MainWindow::on_pushButton_2_clicked()
 
     // переключение
     bool &value = graph->needToSolveTask;
-    if (value)
-    {
-        value = false;
-        qDebug() << "Коммивояжер. off";
-    }
-    else
-    {
-        value = true;
-        qDebug() << "Коммивояжер. on";
-    }
+    value = !value;
 
 }
 
@@ -208,16 +223,7 @@ void MainWindow::on_deixtra_button_clicked()
 
     // переключение
     bool &value = graph->needDeixtra;
-    if (value)
-    {
-        value = false;
-        qDebug() << "Дейкстра. off";
-    }
-    else
-    {
-        value = true;
-        qDebug() << "Дейкстра. on";
-    }
+    value = !value;
 }
 
 void MainWindow::updateStatusBar(QString text)
@@ -230,7 +236,6 @@ void MainWindow::on_randomize_button_clicked()
     // Выключение других функций
     graph->turn_off_buttons();
 
-    qDebug() << "Рандомизация.";
     graph->randomizeAdjacencyMatrix(7);
 }
 
@@ -242,16 +247,7 @@ void MainWindow::on_pushButton_3_clicked()
 
     // переключение
     bool &value = graph->needInDeep;
-    if (value)
-    {
-        value = false;
-        qDebug() << "Обход в глубину. off";
-    }
-    else
-    {
-        value = true;
-        qDebug() << "Обход в глубину. on";
-    }
+    value = !value;
 }
 
 
@@ -262,16 +258,7 @@ void MainWindow::on_butti_in_width_clicked()
 
     // переключение
     bool &value = graph->needInWidth;
-    if (value)
-    {
-        value = false;
-        qDebug() << "Обход в ширину. off";
-    }
-    else
-    {
-        value = true;
-        qDebug() << "Обход в ширину. on";
-    }
+    value = !value;
 }
 
 
@@ -282,15 +269,71 @@ void MainWindow::on_button_floid_clicked()
 
     // переключение
     bool &value = graph->needFloid;
-    if (value)
+    value = !value;
+}
+
+
+void MainWindow::on_pushButton_readGrafFromFile_clicked()
+{
+    QFile* file = tryToOpenFile(QDir::currentPath() + "/matrix.txt");
+    QVector<QVector<int>> matrix = readMatrixFromFile(file, fileReadingLines);
+
+    if (matrix.isEmpty())
     {
-        value = false;
-        qDebug() << "Алгоритм Флойда. off";
+        if (messageBoxYesNoQuestion(this, "?", "Достигнут конец файла,\nначать чтение заново?") == QMessageBox::Yes){
+            fileReadingLines = 0;
+            on_pushButton_readGrafFromFile_clicked();
+        } else {
+            return;
+        }
     }
     else
     {
-        value = true;
-        qDebug() << "Алгоритм Флойда. on";
+        graph->clearScene();
+        graph->addNodeFromNewMatrix(matrix);
+        updateScene();
     }
 }
 
+
+void MainWindow::on_pushButton_switchMatrix_clicked()
+{
+    QVector<QString> textToPrint = {"Матрица смежности", "Матрица достижимости", "Матрица сильной связности"};
+
+    int currentIndex = ui->stackedWidget_matrix->currentIndex();
+    int index = 0;
+    if (currentIndex != ui->stackedWidget_matrix->count()-1) index = currentIndex+1;
+    ui->stackedWidget_matrix->setCurrentIndex(index);
+
+    ui->label_matrixName->setText(textToPrint[index]);
+    if (index == ui->stackedWidget_matrix->count()-1) index = -1;
+    ui->pushButton_switchMatrix->setText(textToPrint[index+1]);
+}
+
+
+void MainWindow::on_pushButton_connectivityComponents_clicked()
+{
+    if (graph->getMatrix().isEmpty()) return;
+    QVector<QVector<int>> strongComponents = getStrongComponentsConnectivity(getStrongConnectedMatrix(getReachabilityMatrix(graph->getMatrix())));
+    QVector<QVector<int>> weakComponents = getWeakComponentsConnectivity(getAllPointPathsInDepth(graph->getMatrix().size()), graph->getMatrix().size());
+    QString text = "Компоненты сильной связности:\n";
+    text += vectorComponentsToString(strongComponents);
+    text += "\n\nКомпоненты слабой связности:\n";
+    text += vectorComponentsToString(weakComponents);
+
+    QMessageBox::information(this, "Компоненты связности", text);
+}
+
+QVector<QVector<int>> MainWindow::getAllPointPathsInDepth(const int& adjacencyMatrixSize)
+{
+    QVector<QVector<int>> paths;
+    for (int i = 0; i < adjacencyMatrixSize; i++)
+    {
+        QVector<int> path;
+        QVector<bool> visited(adjacencyMatrixSize, false);
+        graph->depthFirstSearch(i, visited, path);
+        paths.push_back(path);
+    }
+
+    return paths;
+}

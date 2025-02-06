@@ -104,17 +104,44 @@ public:
 
     QVector<QVector<int>>& getMatrix() {return adjacencyMatrix;}
 
-
 public:
+    // очистка сцены
+    void clearScene()
+    {
+        // Удаляем все узлы из вектора nodes
+        for (Node* node : nodes)
+        {
+            scene->removeItem(node); // Удаляем узел из сцены
+            delete node; // Освобождаем память, выделенную под узел
+        }
+
+        // Очищаем матрицу
+        adjacencyMatrix.clear();
+
+        // Очищаем вектор nodes
+        nodes.clear();
+
+        // Очистка узлов
+        clearLinks();
+
+        // обновление сцены
+        drawNodes();
+        drawLinks();
+
+        // Отправляем сигнал об изменении матрицы смежности
+        emit adjacencyMatrixChanged(adjacencyMatrix);
+    }
+
     void turn_off_buttons()
     {
-        QVector<bool*> all_buttons = { &needToLink, &needToDelete, &needToDeleteLink, &needToSolveTask, &needTwoWayAddition,
+        QVector<bool*> all_buttons = { &needToLink, &needToDelete, &needToDeleteLink, &needToSolveTask,
                                        &needDeixtra, &needInDeep, &needInWidth, &needFloid };
         for (bool* flag : all_buttons)
         {
             *flag = false;
         }
     }
+
 
     // отрисовка узлов
     void drawNodes()
@@ -134,8 +161,8 @@ public:
     {
        // Удаляем все связи из слоя
        clearLinks();
-
        drawNodes();
+
        for (int i = 0; i < adjacencyMatrix.size(); ++i)
        {
            for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
@@ -147,13 +174,25 @@ public:
                     linkLayer->addToGroup(weightLink);
 
                     // Добавление стрелки на слой
-                    Arrow* arrow = new Arrow(nodes[i], nodes[j]);
+                    Arrow* arrow = new Arrow(nodes[j], nodes[i]);
                     linkLayer->addToGroup(arrow);
                }
            }
        }
 
        scene->update();
+    }
+
+    Node* inicializationNodeRandPosition(int index, QString nodeData)
+    {
+        QPointF position(qrand() % 400, qrand() % 400);
+        Node* node = new Node(index, position, nodeData, 60);
+        node->setPos(position);
+
+        connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
+        connect(node, &Node::updateLinksSignal, this, &Graph::handleUpdateLinksSignal);
+
+        return node;
     }
 
     // добавление узла (рандомно)
@@ -172,27 +211,26 @@ public:
             return;
         }
 
-        // создание узла и рандомизация его расположения
-        QPointF position(qrand() % 400, qrand() % 400);
-        Node* node = new Node(nodes.size(), position, text, 60);
-        node->setPos(position);
-        nodes.append(node);
-
-        // нажатие на узел
-        connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
-
-        // перемещение узла
-        connect(node, &Node::updateLinksSignal, this, &Graph::handleUpdateLinksSignal);
+        nodes.append(inicializationNodeRandPosition(nodes.size(), text));
 
         // Добавляем новую строку и столбец в матрицу смежности
         for (int i = 0; i < nodes.size() - 1; ++i)
         {
             adjacencyMatrix[i].append(0);
         }
-        QVector<int> newRow(nodes.size(), 0);
-        adjacencyMatrix.append(newRow);
+        adjacencyMatrix.append(QVector<int>(nodes.size(), 0));
 
         // Отправляем сигнал об изменении матрицы смежности
+        emit adjacencyMatrixChanged(adjacencyMatrix);
+    }
+
+    void addNodeFromNewMatrix(QVector<QVector<int>> matrix)
+    {
+        for (int i=1; i <= matrix.size(); i++)
+        {
+            nodes.append(inicializationNodeRandPosition(nodes.size(), QString::number(i)));
+        }
+        adjacencyMatrix=matrix;
         emit adjacencyMatrixChanged(adjacencyMatrix);
     }
 
@@ -283,7 +321,7 @@ public:
         {
             int fromNode = path[i];
             int toNode = path[i + 1];
-            totalWeight += adjacencyMatrix[toNode][fromNode];
+            totalWeight += adjacencyMatrix[fromNode][toNode];
         }
 
         return totalWeight;
@@ -320,10 +358,10 @@ public:
             // Обновляем расстояния до соседей выбранного узла
             for (int v = 0; v < size; ++v)
             {
-                if (!visited[v] && adjacencyMatrix[v][u] && distances[u] != std::numeric_limits<int>::max() &&
-                    distances[u] + adjacencyMatrix[v][u] < distances[v])
+                if (!visited[v] && adjacencyMatrix[u][v] && distances[u] != std::numeric_limits<int>::max() &&
+                    distances[u] + adjacencyMatrix[u][v] < distances[v])
                 {
-                    distances[v] = distances[u] + adjacencyMatrix[v][u];
+                    distances[v] = distances[u] + adjacencyMatrix[u][v];
                     paths[v] = paths[u]; // Копируем путь до u
                     paths[v].append(v); // Добавляем узел v в путь
                 }
@@ -386,12 +424,12 @@ public:
         visited[startIndex] = true;
 
         // Добавляем узел в путь
-        path.append(startIndex);
+        path.push_back(startIndex);
 
         // Рекурсивно обходим всех непосещенных соседей
         for (int i = 0; i < nodes.size(); ++i)
         {
-            if (adjacencyMatrix[i][startIndex] > 0 && !visited[i])
+            if (adjacencyMatrix[startIndex][i] > 0 && !visited[i])
             {
                 depthFirstSearch(i, visited, path);
             }
@@ -414,7 +452,7 @@ public:
 
             for (int i = 0; i < nodes.size(); ++i)
             {
-                if (adjacencyMatrix[i][currentNode] > 0 && !visited[i])
+                if (adjacencyMatrix[currentNode][i] > 0 && !visited[i])
                 {
                     visited[i] = true;
                     queue.enqueue(i);
@@ -450,11 +488,6 @@ public:
         }
 
         QPointF center = {600/2, 576/2};
-
-        QRect rect(600/2, 576/2, 3, 3);
-
-        scene->addRect(rect);
-
         qreal shift_angle = 360 / size;
         qreal lenght =  30 * size;
 
@@ -465,23 +498,12 @@ public:
             qreal angle = i * shift_angle;
             qreal delta_y = sin(angle / 57.295779513) * lenght;
             qreal delta_x = cos(angle / 57.295779513) * lenght;
-            QPointF position(center.x() + delta_x, center.y() + delta_y); // Случайная позиция на сцене
-            QString data = QString::number(i + 1); // Данные узла
-            Node* node = new Node(i, position, data, 60); // Создание узла
+            QPointF position(center.x() + delta_x, center.y() + delta_y);
+            QString nodeData = QString::number(i + 1);
+            Node* node = inicializationNodeRandPosition(i, nodeData);
             node->setPos(position);
             nodes.append(node);
-
-            // Подключение сигналов узла
-            connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
-            connect(node, &Node::updateLinksSignal, this, &Graph::handleUpdateLinksSignal);
         }
-
-        // Отрисовка узлов
-        drawLinks();
-
-        // Отрисовка связей
-        drawNodes();
-
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
     }
@@ -525,16 +547,19 @@ public slots:
                 if (confirm && !text.isEmpty())
                 {
                     int weight = text.toInt(); // Преобразование строки в целое число
-                    adjacencyMatrix[index][selectedNodeIndex] = weight;
-                    if (needTwoWayAddition) adjacencyMatrix[selectedNodeIndex][index] = weight;
+                    adjacencyMatrix[selectedNodeIndex][index] = weight;
+                    if (needTwoWayAddition)
+                    {
+                        adjacencyMatrix[index][selectedNodeIndex] = weight;
+                    }
                 }
                 // Убираем флаг на добавление узла
                 needToLink = false;
             }
             else if (needToDeleteLink)
             {
-                adjacencyMatrix[index][selectedNodeIndex] = 0;
-                if (needTwoWayAddition) adjacencyMatrix[selectedNodeIndex][index] = 0;
+                adjacencyMatrix[selectedNodeIndex][index] = 0;
+                if (needTwoWayAddition) adjacencyMatrix[index][selectedNodeIndex] = 0;
                 needToDeleteLink = false;
             }
 
@@ -599,11 +624,7 @@ public slots:
         {
             needDeixtra = false;
 
-            qDebug() << "Алгоритм Дейкстры!";
-
             QVector<QVector<int>> paths = shortestPaths(index);
-
-            qDebug() << paths;
 
             QString *text = new QString;
 
@@ -613,14 +634,14 @@ public slots:
             {
                 if (paths[i].size() != 1)
                 {
-                    *text += "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ":\n";
+                    *text += "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ": ";
 
                     *text += QString::number(paths[i][0] + 1);
                     for (int j = 1; j < paths[i].size(); ++j)
                     {
                         *text += " -> " + QString::number(paths[i][j] + 1);
                     }
-                    *text += ".\nСтоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
+                    *text += ". Стоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
                 }
             }
 
@@ -647,14 +668,14 @@ public slots:
                 {
                     if (paths[i].size() != 1)
                     {
-                        QString text = "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ":\n";
+                        QString text = "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ": ";
 
                         text += QString::number(paths[i][0] + 1);
                         for (int j = 1; j < paths[i].size(); ++j)
                         {
                             text += " -> " + QString::number(paths[i][j] + 1);
                         }
-                        text += ".\nСтоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
+                        text += ". Стоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
                         all_paths.append(text);
                     }
                 }
@@ -681,8 +702,6 @@ public slots:
         {
             needInDeep = false;
 
-            qDebug() << "Вы круто обошли граф в глубину";
-
             QVector<bool> visited(nodes.size(), false);
             depthFirstSearch(index, visited, path);
 
@@ -697,8 +716,6 @@ public slots:
         {
             needInWidth = false;
 
-            qDebug() << "Вы круто обошли граф в ширину";
-
             widthFirstCrawl(index, path);
 
             qDebug() << path;
@@ -709,34 +726,7 @@ public slots:
         // ----------------------------------------------------------------------------------------------------------
 
         // отрисовка связей
-        drawNodes();
-        drawLinks();
-
-        // Отправляем сигнал об изменении матрицы смежности
-        emit adjacencyMatrixChanged(adjacencyMatrix);
-    }
-
-    // очистка сцены
-    void clearScene()
-    {
-        // Удаляем все узлы из вектора nodes
-        for (Node* node : nodes)
-        {
-            scene->removeItem(node); // Удаляем узел из сцены
-            delete node; // Освобождаем память, выделенную под узел
-        }
-
-        // Очищаем матрицу
-        adjacencyMatrix.clear();
-
-        // Очищаем вектор nodes
-        nodes.clear();
-
-        // Очистка узлов
-        clearLinks();
-
-        // обновление сцены
-        drawNodes();
+//        drawNodes();
         drawLinks();
 
         // Отправляем сигнал об изменении матрицы смежности

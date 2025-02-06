@@ -10,7 +10,8 @@ CONFIG += c++11
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    utils.cpp
 
 HEADERS += \
     Node.h \
@@ -18,6 +19,7 @@ HEADERS += \
     graph.h \
     link.h \
     mainwindow.h \
+    utils.h \
     zoomablegraphicsview.h
 
 FORMS += \

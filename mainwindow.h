@@ -4,20 +4,19 @@
 #include <QMainWindow>
 
 #include <QItemDelegate>
-
 #include <QPainter>
-
 #include <QTime>
-
 #include <QDebug>
 
 #include "Node.h"
 #include "graph.h"
 #include "zoomablegraphicsview.h"
+#include "utils.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsItem>
+#include <QDir>
 
 #include <QStandardItemModel>
 #include <QTableView>
@@ -43,6 +42,8 @@ private slots:
 
     // отрисовка матрицы
     void updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix);
+    void updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix);
+    void updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix);
 
     // отрисовка изменений в матрице
     void onMatrixCellChanged(const QModelIndex &index);
@@ -70,6 +71,12 @@ private slots:
 
     void on_button_floid_clicked();
 
+    void on_pushButton_readGrafFromFile_clicked();
+
+    void on_pushButton_switchMatrix_clicked();
+
+    void on_pushButton_connectivityComponents_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -81,10 +88,15 @@ private:
 
     // Модель для отображения матрицы смежности
     QStandardItemModel *matrixModel;
+    QStandardItemModel *reachMatrixModel;
+    QStandardItemModel *strongMatrixModel;
 
     QTimer *updateTimer;
     int updateInterval = 1000; // интервал обновления в миллисекундах
 
+    int fileReadingLines = 0;
+
+    QVector<QVector<int>> getAllPointPathsInDepth(const int& adjacencyMatrixSize); // Обход в глубину для всех вершин графа
 };
 
 class CenterTextDelegate : public QItemDelegate
