@@ -22,7 +22,7 @@ QVector<QVector<int>> getMatrixSum(const QVector<QVector<int>>& firstMatrix, con
 
 QVector<QVector<int>> getStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix);
 
-QVector<QVector<int>> getStrongComponentsConnectivity(const QVector<QVector<int>>& strongConnectedMatrix);
+QVector<QVector<int>> getStrongComponentsConnectivity(const QVector<QVector<int>>& adjacencyMatrix);
 
 QVector<QVector<int>> getWeakComponentsConnectivity(const QVector<QVector<int>>& pathsFromAllPoint, const int& adjacencyMatrixSize);
 

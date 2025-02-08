@@ -123,8 +123,8 @@ void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QV
         }
     }
 
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание все колонки
-    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание все строки
+    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание всех колонок
+    tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание всех строк
 }
 
 void MainWindow::updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix)
@@ -179,34 +179,19 @@ void MainWindow::updateScene()
 
 void MainWindow::on_delete_node_button_clicked()
 {
-    // Выключение других функций
-    graph->turn_off_buttons();
-
-    // переключение
-    bool &value = graph->needToDelete;
-    value = !value;
+    switchModes(graph->needToDelete);
 }
 
 
 void MainWindow::on_delete_link_button_clicked()
 {
-    // Выключение других функций
-    graph->turn_off_buttons();
-
-     // переключение
-     bool &value = graph->needToDeleteLink;
-     value = !value;
+    switchModes(graph->needToDeleteLink);
 
 }
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    // Выключение других функций
-    graph->turn_off_buttons();
-
-    // переключение
-    bool &value = graph->needToSolveTask;
-    value = !value;
+    switchModes(graph->needToSolveTask);
 
 }
 
@@ -218,12 +203,7 @@ void MainWindow::on_checkBox_clicked(bool checked)
 
 void MainWindow::on_deixtra_button_clicked()
 {
-    // Выключение других функций
-    graph->turn_off_buttons();
-
-    // переключение
-    bool &value = graph->needDeixtra;
-    value = !value;
+    switchModes(graph->needDeixtra);
 }
 
 void MainWindow::updateStatusBar(QString text)
@@ -242,36 +222,29 @@ void MainWindow::on_randomize_button_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    // Выключение других функций
-    graph->turn_off_buttons();
-
-    // переключение
-    bool &value = graph->needInDeep;
-    value = !value;
+    switchModes(graph->needInDeep);
 }
 
 
 void MainWindow::on_butti_in_width_clicked()
 {
-    // Выключение других функций
-    graph->turn_off_buttons();
-
-    // переключение
-    bool &value = graph->needInWidth;
-    value = !value;
+    switchModes(graph->needInWidth);
 }
 
 
 void MainWindow::on_button_floid_clicked()
 {
+    switchModes(graph->needFloid);
+}
+
+void MainWindow::switchModes(bool& mode)
+{
     // Выключение других функций
     graph->turn_off_buttons();
 
     // переключение
-    bool &value = graph->needFloid;
-    value = !value;
+    mode = !mode;
 }
-
 
 void MainWindow::on_pushButton_readGrafFromFile_clicked()
 {
@@ -313,9 +286,15 @@ void MainWindow::on_pushButton_switchMatrix_clicked()
 
 void MainWindow::on_pushButton_connectivityComponents_clicked()
 {
-    if (graph->getMatrix().isEmpty()) return;
-    QVector<QVector<int>> strongComponents = getStrongComponentsConnectivity(getStrongConnectedMatrix(getReachabilityMatrix(graph->getMatrix())));
-    QVector<QVector<int>> weakComponents = getWeakComponentsConnectivity(getAllPointPathsInDepth(graph->getMatrix().size()), graph->getMatrix().size());
+    QVector<QVector<int>> adjacencyMatrix = graph->getMatrix();
+    QVector<QVector<int>> pathsFormAllPoints = getAllPointPathsInDepth(adjacencyMatrix.size());
+
+    if (adjacencyMatrix.isEmpty())
+        return;
+
+    QVector<QVector<int>> strongComponents = getStrongComponentsConnectivity(adjacencyMatrix);
+    QVector<QVector<int>> weakComponents = getWeakComponentsConnectivity(pathsFormAllPoints, adjacencyMatrix.size());
+
     QString text = "Компоненты сильной связности:\n";
     text += vectorComponentsToString(strongComponents);
     text += "\n\nКомпоненты слабой связности:\n";
@@ -337,3 +316,4 @@ QVector<QVector<int>> MainWindow::getAllPointPathsInDepth(const int& adjacencyMa
 
     return paths;
 }
+

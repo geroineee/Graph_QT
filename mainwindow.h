@@ -97,6 +97,7 @@ private:
     int fileReadingLines = 0;
 
     QVector<QVector<int>> getAllPointPathsInDepth(const int& adjacencyMatrixSize); // Обход в глубину для всех вершин графа
+    void switchModes(bool& mode);
 };
 
 class CenterTextDelegate : public QItemDelegate

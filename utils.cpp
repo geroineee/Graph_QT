@@ -164,13 +164,18 @@ QVector<QVector<int>> getStrongConnectedMatrix(const QVector<QVector<int>>& reac
     return strongConnectedMatrix;
 }
 
-QVector<QVector<int>> getStrongComponentsConnectivity(const QVector<QVector<int>>& strongConnectedMatrix)
+QVector<QVector<int>> getStrongComponentsConnectivity(const QVector<QVector<int>>& adjacencyMatrix)
 {
+    QVector<QVector<int>> reachabilityMatrix = getReachabilityMatrix(adjacencyMatrix);
+    QVector<QVector<int>> strongConnectedMatrix = getStrongConnectedMatrix(reachabilityMatrix);
+
     QVector<QVector<int>> strongComponentsConnectivity;
     QVector<bool> visitedPoints(strongConnectedMatrix.size(), false);
 
     for (int i = 0; i < strongConnectedMatrix.size(); i++)
     {
+        if (visitedPoints[i])
+            continue;
         QVector<int> currentComponent;
         for (int j = 0; j < strongConnectedMatrix[0].size(); j++)
         {
@@ -180,7 +185,8 @@ QVector<QVector<int>> getStrongComponentsConnectivity(const QVector<QVector<int>
                 visitedPoints[j] = true;
             }
         }
-        if (!currentComponent.isEmpty()) strongComponentsConnectivity.push_back(currentComponent);
+        if (!currentComponent.isEmpty())
+            strongComponentsConnectivity.push_back(currentComponent);
     }
     return strongComponentsConnectivity;
 }
