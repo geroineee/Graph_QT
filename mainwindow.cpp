@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(graph, &Graph::adjacencyMatrixChanged, this, &MainWindow::updateAdjacencyMatrix);
 
         // Отправляем сигнал об изменении матрицы смежности
-        updateAdjacencyMatrix(graph->getMatrix());
+//        updateAdjacencyMatrix(graph->getMatrix());
 
     // --------------------------------------------------------------------------------------------------------------------------
 
@@ -315,5 +315,33 @@ QVector<QVector<int>> MainWindow::getAllPointPathsInDepth(const int& adjacencyMa
     }
 
     return paths;
+}
+
+
+void MainWindow::on_action_saveMatrix_triggered()
+{
+    QString filePath = QFileDialog::getSaveFileName(this, tr("Сохранить текущий граф."), "", tr("Ini Files (*.ini);"));
+
+    if (!filePath.isEmpty())
+    {
+        QSettings matrixFileSettings(filePath, QSettings::IniFormat);
+        saveAdjacencyMatrix(matrixFileSettings, graph->getMatrix());
+        saveNodeCoordinates(matrixFileSettings, graph->getNodes());
+    }
+}
+
+
+void MainWindow::on_action_openMatrix_triggered()
+{
+    QString filePath = QFileDialog::getOpenFileName(this, tr("Открыть сохраненный граф."), "", tr("Ini Files (*.ini);"));
+
+    if (!filePath.isEmpty())
+    {
+        graph->clearScene();
+        QSettings matrixFileSettings(filePath, QSettings::IniFormat);
+        QVector<QVector<int>> adjacencyMatrix = loadAdjacencyMatrix(matrixFileSettings);
+        graph->addNodeFromNewMatrix(adjacencyMatrix);
+        loadNodeCoordinates(matrixFileSettings, graph->getNodes());
+    }
 }
 

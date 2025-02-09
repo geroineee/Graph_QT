@@ -104,6 +104,8 @@ public:
 
     QVector<QVector<int>>& getMatrix() {return adjacencyMatrix;}
 
+    QVector<Node*> getNodes() {return nodes;}
+
 public:
     // очистка сцены
     void clearScene()
@@ -125,7 +127,7 @@ public:
         clearLinks();
 
         // обновление сцены
-        drawNodes();
+//        drawNodes();
         drawLinks();
 
         // Отправляем сигнал об изменении матрицы смежности
@@ -183,14 +185,21 @@ public:
        scene->update();
     }
 
-    Node* inicializationNodeRandPosition(int index, QString nodeData)
+    Node* inicializationNode(const int& index, const QString& nodeData, const QPointF& position)
     {
-        QPointF position(qrand() % 400, qrand() % 400);
         Node* node = new Node(index, position, nodeData, 60);
         node->setPos(position);
 
         connect(node, &Node::nodePressed, this, &Graph::handleNodePressed);
         connect(node, &Node::updateLinksSignal, this, &Graph::handleUpdateLinksSignal);
+
+        return node;
+    }
+
+    Node* inicializationNodeRandPosition(const int& index, const QString& nodeData)
+    {
+        QPointF position(qrand() % 400, qrand() % 400);
+        Node* node = inicializationNode(index, nodeData, position);
 
         return node;
     }

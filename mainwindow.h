@@ -17,6 +17,8 @@
 #include <QGraphicsView>
 #include <QGraphicsItem>
 #include <QDir>
+#include <QFileDialog>
+#include <QSettings>
 
 #include <QStandardItemModel>
 #include <QTableView>
@@ -76,6 +78,10 @@ private slots:
     void on_pushButton_switchMatrix_clicked();
 
     void on_pushButton_connectivityComponents_clicked();
+
+    void on_action_saveMatrix_triggered();
+
+    void on_action_openMatrix_triggered();
 
 private:
     Ui::MainWindow *ui;

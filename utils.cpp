@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "graph.h"
 
 QFile* tryToOpenFile(const QString& file_path, bool isTranc)
 {
@@ -56,6 +55,7 @@ QVector<QVector<int>> readMatrixFromFile(QFile* file, int& nextLineNum)
             }
         }
     }
+    file->close();
 
     return matrix;
 }
@@ -255,4 +255,65 @@ QString vectorComponentsToString(const QVector<QVector<int>>& vectorComponents)
     }
 
     return text;
+}
+
+void saveAdjacencyMatrix(QSettings& settings, const QVector<QVector<int>>& adjacencyMatrix)
+{
+    settings.beginGroup("adjacencyMatrix");
+    settings.setValue("matrixDimension", adjacencyMatrix.size());
+
+    for (int i = 0; i < adjacencyMatrix.size(); i++)
+    {
+        for (int j = 0; j < adjacencyMatrix[i].size(); j++)
+        {
+            settings.setValue(QString("matrixElement_%1_%2").arg(i).arg(j), adjacencyMatrix[i][j]);
+        }
+    }
+    settings.endGroup();
+}
+
+void saveNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes)
+{
+    settings.beginGroup("vertexCoordinates");
+    for (int i = 0; i < nodes.size(); i++)
+    {
+        QPointF position = nodes[i]->pos();
+        settings.setValue(QString("node_%1_X").arg(i), position.x());
+        settings.setValue(QString("node_%1_Y").arg(i), position.y());
+    }
+    settings.endGroup();
+}
+
+QVector<QVector<int>> loadAdjacencyMatrix(QSettings& settings)
+{
+    QVector<QVector<int>> adjacencyMatrix;
+
+    settings.beginGroup("adjacencyMatrix");
+    int matrixSize = settings.value("matrixDimension").toInt();
+    adjacencyMatrix.resize(matrixSize);
+
+    for (int i = 0; i < matrixSize; i++)
+    {
+        adjacencyMatrix[i].resize(matrixSize);
+        for (int j = 0; j < matrixSize; j++)
+        {
+            adjacencyMatrix[i][j] = settings.value(QString("matrixElement_%1_%2").arg(i).arg(j)).toInt();
+        }
+    }
+    settings.endGroup();
+
+    return adjacencyMatrix;
+}
+
+void loadNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes)
+{
+    settings.beginGroup("vertexCoordinates");
+    for (int i = 0; i < nodes.size(); i++)
+    {
+        QPointF position;
+        position.setX(settings.value(QString("node_%1_X").arg(i)).toReal());
+        position.setY(settings.value(QString("node_%1_Y").arg(i)).toReal());
+        nodes[i]->setPos(position);
+    }
+    settings.endGroup();
 }

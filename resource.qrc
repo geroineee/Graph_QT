@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/buttonIcon">
+        <file>images/openButt.png</file>
+        <file>images/saveButt.png</file>
+    </qresource>
+</RCC>

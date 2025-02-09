@@ -37,6 +37,8 @@ public:
 
     int getSize() {return m_size;}
 
+    void setPosition(const QPointF& position) {m_position = position;}
+
     void isMovableNode(bool flag)
     {
         m_isMovable = flag;

@@ -5,6 +5,9 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QSet>
+#include <QSettings>
+
+#include "graph.h"
 
 QFile* tryToOpenFile(const QString& file_path, bool isTranc = false);
 
@@ -31,5 +34,13 @@ void mergeVector(QVector<int>& firstVector, const QVector<int>& secondVector);
 QString vectorComponentsToString(const QVector<QVector<int>>& vectorComponents);
 
 int messageBoxYesNoQuestion(QWidget* parent, const QString& header, const QString& text);
+
+void saveAdjacencyMatrix(QSettings& settings, const QVector<QVector<int>>& adjacencyMatrix);
+
+void saveNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes);
+
+QVector<QVector<int>> loadAdjacencyMatrix(QSettings& settings);
+
+void loadNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes);
 
 #endif // UTILS_H
