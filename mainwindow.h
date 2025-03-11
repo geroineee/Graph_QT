@@ -43,6 +43,7 @@ private slots:
     void on_clear_button_clicked();
 
     // отрисовка матрицы
+    void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix);
     void updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix);
     void updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix);
     void updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix);
@@ -64,7 +65,7 @@ private slots:
 
     void on_randomize_button_clicked();
 
-    void updateScene();
+    void updateScene(const QVector<QVector<int>>& matrix);
 
 
     void on_pushButton_3_clicked();
@@ -75,13 +76,13 @@ private slots:
 
     void on_pushButton_readGrafFromFile_clicked();
 
-    void on_pushButton_switchMatrix_clicked();
-
     void on_pushButton_connectivityComponents_clicked();
 
     void on_action_saveMatrix_triggered();
 
     void on_action_openMatrix_triggered();
+
+    void on_comboBox_switchMatrix_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;
@@ -94,16 +95,16 @@ private:
 
     // Модель для отображения матрицы смежности
     QStandardItemModel *matrixModel;
-    QStandardItemModel *reachMatrixModel;
-    QStandardItemModel *strongMatrixModel;
-
-    QTimer *updateTimer;
-    int updateInterval = 1000; // интервал обновления в миллисекундах
 
     int fileReadingLines = 0;
 
+    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица достижимости", "Матрица сильной связности", "Остовное дерево (Метод Прима)"};
+
     QVector<QVector<int>> getAllPointPathsInDepth(const int& adjacencyMatrixSize); // Обход в глубину для всех вершин графа
     void switchModes(bool& mode);
+    void disableAllButtons(bool);
+    void updateMatrixViewCommon(QAbstractItemView::EditTriggers editTrigger, const QVector<QVector<int>>& matrix,
+                                void (MainWindow::*updateFunction)(const QVector<QVector<int>>&), bool needToDisableButtons);
 };
 
 class CenterTextDelegate : public QItemDelegate

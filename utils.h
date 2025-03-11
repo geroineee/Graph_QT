@@ -43,4 +43,10 @@ QVector<QVector<int>> loadAdjacencyMatrix(QSettings& settings);
 
 void loadNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes);
 
+QVector<QVector<int>> getSpanningTreeByPrima(const QVector<QVector<int>>& adjacencyMatrix);
+
+QPair<int, int> getMinConnectionFromHandledNodes(const QVector<QVector<int>>& adjacencyMatrix, const QVector<bool>& handledNode);
+
+QVector<QVector<int>> getSpanningTreeByKruskal(const QVector<QVector<int>>& adjacencyMatrix);
+
 #endif // UTILS_H

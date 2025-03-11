@@ -12,9 +12,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     graph = new Graph(scene);
     ui->graphicsView->setScene(scene);
 
-    ui->label_matrixName->setAlignment(Qt::AlignCenter);
-    ui->label_matrixName->setText("Матрица смежности");
-
     // коннект кнопки "очистить"
     connect(ui->clear_button, &QPushButton::clicked, graph, &Graph::clearScene);
 
@@ -25,26 +22,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
         // модель для матрицы смежности
         matrixModel = new QStandardItemModel(this);
-        reachMatrixModel = new QStandardItemModel(this);
-        strongMatrixModel = new QStandardItemModel(this);
 
         // установка модели к обьекту QTableView
         ui->matrixView->setModel(matrixModel);
-        ui->tableView_reachMatrix->setModel(reachMatrixModel);
-        ui->tableView_strongMatrix->setModel(strongMatrixModel);
-
-        ui->tableView_reachMatrix->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        ui->tableView_strongMatrix->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
         // минимальный размер колонок и столбцов QTableView
         ui->matrixView->verticalHeader()->setMinimumSectionSize(5);
         ui->matrixView->horizontalHeader()->setMinimumSectionSize(5);
-
-        ui->tableView_reachMatrix->verticalHeader()->setMinimumSectionSize(5);
-        ui->tableView_reachMatrix->horizontalHeader()->setMinimumSectionSize(5);
-
-        ui->tableView_strongMatrix->verticalHeader()->setMinimumSectionSize(5);
-        ui->tableView_strongMatrix->horizontalHeader()->setMinimumSectionSize(5);
 
         // коннект для изменения графа при изменении матрицы
         connect(matrixModel, &QStandardItemModel::dataChanged, this, &MainWindow::onMatrixCellChanged);
@@ -54,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
         // Отправляем сигнал об изменении матрицы смежности
 //        updateAdjacencyMatrix(graph->getMatrix());
+        ui->comboBox_switchMatrix->addItems(matrixItemsTitles);
 
     // --------------------------------------------------------------------------------------------------------------------------
 
@@ -69,10 +54,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 MainWindow::~MainWindow()
 {
     delete ui;
-
-    // очистка таймера
-    updateTimer->stop();
-    delete updateTimer;
 }
 
 void MainWindow::on_draw_button_clicked()
@@ -83,8 +64,7 @@ void MainWindow::on_draw_button_clicked()
     graph->addNode();
 
     // отрисовка узлов
-    updateScene();
-
+    updateScene(graph->getMatrix());
 }
 
 
@@ -104,11 +84,13 @@ void MainWindow::on_clear_button_clicked()
     graph->clearScene();
 }
 
-void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix)
+void MainWindow::updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix)
 {
     // Центрирование полей
     CenterTextDelegate *delegate = new CenterTextDelegate;
     tableView->setItemDelegate(delegate);
+
+    model->blockSignals(true); // Блокировка сигнала обновления данных в матрице
 
     model->clear();
     model->setColumnCount(matrix.size());
@@ -123,6 +105,8 @@ void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QV
         }
     }
 
+    model->blockSignals(false);
+
     tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание всех колонок
     tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); // Растягивание всех строк
 }
@@ -130,25 +114,20 @@ void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QV
 void MainWindow::updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix)
 {
     updateMatrixView(ui->matrixView, matrixModel, adjacencyMatrix);
-    if (!adjacencyMatrix.isEmpty()){
-        updateReachabilityMatrix(adjacencyMatrix);
-    } else {
-        reachMatrixModel->clear();
-        strongMatrixModel->clear();
-    }
+    graph->setDrawinMatrix(adjacencyMatrix);
+    updateScene(adjacencyMatrix);
 }
 
 void MainWindow::updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix)
 {
     QVector<QVector<int>> reachabilityMatrix = getReachabilityMatrix(adjacencyMatrix);
-    updateMatrixView(ui->tableView_reachMatrix, reachMatrixModel, reachabilityMatrix);
-    updateStrongConnectedMatrix(reachabilityMatrix);
+    updateMatrixView(ui->matrixView, matrixModel, reachabilityMatrix);
 }
 
 void MainWindow::updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix)
 {
     QVector<QVector<int>> strongConnectedMatrix = getStrongConnectedMatrix(reachabilityMatrix);
-    updateMatrixView(ui->tableView_strongMatrix, strongMatrixModel, strongConnectedMatrix);
+    updateMatrixView(ui->matrixView, matrixModel, strongConnectedMatrix);
 }
 
 void MainWindow::onMatrixCellChanged(const QModelIndex &index)
@@ -159,21 +138,15 @@ void MainWindow::onMatrixCellChanged(const QModelIndex &index)
 
     // Обновляем матрицу смежности
     graph->getMatrix()[row][column] = value;
-
-    if (!graph->getMatrix().isEmpty()){
-        updateReachabilityMatrix(graph->getMatrix());
-    } else {
-        reachMatrixModel->clear();
-        strongMatrixModel->clear();
-    }
+    graph->setDrawinMatrix(graph->getMatrix());
 
     // Перерисовываем граф
-    updateScene();
+    updateScene(graph->getMatrix());
 }
 
-void MainWindow::updateScene()
+void MainWindow::updateScene(const QVector<QVector<int>>& matrix)
 {
-    graph->drawLinks();
+    graph->drawLinks(matrix);
 //    graph->drawNodes();
 }
 
@@ -246,6 +219,16 @@ void MainWindow::switchModes(bool& mode)
     mode = !mode;
 }
 
+void MainWindow::disableAllButtons(bool flag)
+{
+    ui->action_openMatrix->setDisabled(flag);
+    QList<QPushButton*> pushButtonChildren = findChildren<QPushButton*>();
+    Q_FOREACH (QPushButton* button, pushButtonChildren)
+    {
+        button->setDisabled(flag);
+    }
+}
+
 void MainWindow::on_pushButton_readGrafFromFile_clicked()
 {
     QFile* file = tryToOpenFile(QDir::currentPath() + "/matrix.txt");
@@ -264,23 +247,8 @@ void MainWindow::on_pushButton_readGrafFromFile_clicked()
     {
         graph->clearScene();
         graph->addNodeFromNewMatrix(matrix);
-        updateScene();
+        updateScene(matrix);
     }
-}
-
-
-void MainWindow::on_pushButton_switchMatrix_clicked()
-{
-    QVector<QString> textToPrint = {"Матрица смежности", "Матрица достижимости", "Матрица сильной связности"};
-
-    int currentIndex = ui->stackedWidget_matrix->currentIndex();
-    int index = 0;
-    if (currentIndex != ui->stackedWidget_matrix->count()-1) index = currentIndex+1;
-    ui->stackedWidget_matrix->setCurrentIndex(index);
-
-    ui->label_matrixName->setText(textToPrint[index]);
-    if (index == ui->stackedWidget_matrix->count()-1) index = -1;
-    ui->pushButton_switchMatrix->setText(textToPrint[index+1]);
 }
 
 
@@ -343,5 +311,33 @@ void MainWindow::on_action_openMatrix_triggered()
         graph->addNodeFromNewMatrix(adjacencyMatrix);
         loadNodeCoordinates(matrixFileSettings, graph->getNodes());
     }
+}
+
+void MainWindow::on_comboBox_switchMatrix_currentIndexChanged(int index)
+{
+    switch (index) {
+    case 0:
+        updateMatrixViewCommon(QAbstractItemView::AllEditTriggers, graph->getMatrix(), &MainWindow::updateAdjacencyMatrix, false);
+        break;
+    case 1:
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, graph->getMatrix(), &MainWindow::updateReachabilityMatrix, true);
+        break;
+    case 2:
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getReachabilityMatrix(graph->getMatrix()), &MainWindow::updateStrongConnectedMatrix, true);
+        break;
+    case 3:
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByPrima(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
+        break;
+    default:
+        break;
+    }
+}
+
+void MainWindow::updateMatrixViewCommon(QAbstractItemView::EditTriggers editTrigger, const QVector<QVector<int>>& matrix,
+                                        void (MainWindow::*updateFunction)(const QVector<QVector<int>>&), bool needToDisableButtons)
+{
+    ui->matrixView->setEditTriggers(editTrigger);
+    (this->*updateFunction)(matrix);
+    disableAllButtons(needToDisableButtons);
 }
 

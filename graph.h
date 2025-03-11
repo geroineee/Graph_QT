@@ -43,6 +43,9 @@ private:
     // сцена для отрисовки
     QGraphicsScene *scene;
 
+    // матрица для отрисовки
+    QVector<QVector<int>> drawingMatrix;
+
     // Новый слой для связей
     QGraphicsItemGroup* linkLayer;
 
@@ -107,6 +110,10 @@ public:
     QVector<Node*> getNodes() {return nodes;}
 
 public:
+    void setDrawinMatrix(const QVector<QVector<int>> matrix)
+    {
+        drawingMatrix = matrix;
+    }
     // очистка сцены
     void clearScene()
     {
@@ -119,6 +126,7 @@ public:
 
         // Очищаем матрицу
         adjacencyMatrix.clear();
+        drawingMatrix.clear();
 
         // Очищаем вектор nodes
         nodes.clear();
@@ -128,7 +136,7 @@ public:
 
         // обновление сцены
 //        drawNodes();
-        drawLinks();
+        drawLinks({});
 
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
@@ -159,20 +167,20 @@ public:
     }
 
     // отрисовка связей
-    void drawLinks()
+    void drawLinks(const QVector<QVector<int>>& matrix)
     {
        // Удаляем все связи из слоя
        clearLinks();
        drawNodes();
 
-       for (int i = 0; i < adjacencyMatrix.size(); ++i)
+       for (int i = 0; i < matrix.size(); ++i)
        {
-           for (int j = 0; j < adjacencyMatrix[i].size(); ++j)
+           for (int j = 0; j < matrix[i].size(); ++j)
            {
-                if (adjacencyMatrix[i][j] > 0)
+                if (matrix[i][j] > 0)
                {
                     // Добавление связи с весом на слой
-                    Link* weightLink = new Link(nodes[i], nodes[j], adjacencyMatrix[i][j]);
+                    Link* weightLink = new Link(nodes[i], nodes[j], matrix[i][j]);
                     linkLayer->addToGroup(weightLink);
 
                     // Добавление стрелки на слой
@@ -734,10 +742,6 @@ public slots:
 
         // ----------------------------------------------------------------------------------------------------------
 
-        // отрисовка связей
-//        drawNodes();
-        drawLinks();
-
         // Отправляем сигнал об изменении матрицы смежности
         emit adjacencyMatrixChanged(adjacencyMatrix);
     }
@@ -745,8 +749,7 @@ public slots:
     // слот для обновления связей
     void handleUpdateLinksSignal()
      {
-        drawNodes();
-        drawLinks();
+        drawLinks(drawingMatrix);
      }
 
     // Очистка цвета узлов
