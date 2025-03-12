@@ -222,6 +222,7 @@ public:
                                             "", &confirm);
 
         // При отмене
+        if (!confirm)
         {
             return;
         }

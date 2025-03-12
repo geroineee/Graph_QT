@@ -116,6 +116,11 @@ void MainWindow::updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMat
     updateScene(adjacencyMatrix);
 }
 
+void MainWindow::updateShortestPathsMatrix(const QVector<QVector<int>>& shortestPathsMatrix)
+{
+    updateMatrixView(ui->matrixView, matrixModel, shortestPathsMatrix);
+}
+
 void MainWindow::updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix)
 {
     QVector<QVector<int>> reachabilityMatrix = getReachabilityMatrix(adjacencyMatrix);
@@ -124,6 +129,8 @@ void MainWindow::updateReachabilityMatrix(const QVector<QVector<int>>& adjacency
 
 void MainWindow::updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix)
 {
+    if (reachabilityMatrix.empty()) return;
+
     QVector<QVector<int>> strongConnectedMatrix = getStrongConnectedMatrix(reachabilityMatrix);
     updateMatrixView(ui->matrixView, matrixModel, strongConnectedMatrix);
 }
@@ -317,16 +324,20 @@ void MainWindow::on_comboBox_switchMatrix_currentIndexChanged(int index)
         updateMatrixViewCommon(QAbstractItemView::AllEditTriggers, graph->getMatrix(), &MainWindow::updateAdjacencyMatrix, false);
         break;
     case 1:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, graph->getMatrix(), &MainWindow::updateReachabilityMatrix, true);
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getShortestPathsMatrixBuShimbell(graph->getMatrix()), &MainWindow::updateShortestPathsMatrix, false);
         break;
     case 2:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getReachabilityMatrix(graph->getMatrix()), &MainWindow::updateStrongConnectedMatrix, true);
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, graph->getMatrix(), &MainWindow::updateReachabilityMatrix, true);
         break;
     case 3:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByPrima(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getReachabilityMatrix(graph->getMatrix()), &MainWindow::updateStrongConnectedMatrix, true);
         break;
     case 4:
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByPrima(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
+        break;
+    case 5:
         updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByKruskal(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
+        break;
     default:
         break;
     }

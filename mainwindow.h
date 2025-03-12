@@ -12,6 +12,9 @@
 #include "graph.h"
 #include "zoomablegraphicsview.h"
 #include "utils.h"
+#include "algorithms/kruaskalmethod.h"
+#include "algorithms/primmethod.h"
+#include "algorithms/shimbellmethod.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -42,11 +45,7 @@ private slots:
 
     void on_clear_button_clicked();
 
-    // отрисовка матрицы
-    void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix);
     void updateAdjacencyMatrix(const QVector<QVector<int>>& adjacencyMatrix);
-    void updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix);
-    void updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix);
 
     // отрисовка изменений в матрице
     void onMatrixCellChanged(const QModelIndex &index);
@@ -98,7 +97,7 @@ private:
 
     int fileReadingLines = 0;
 
-    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица достижимости", "Матрица сильной связности",
+    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица минимальных путей (Алгоритм)" , "Матрица достижимости", "Матрица сильной связности",
                                      "Остовное дерево (Метод Прима)", "Остовное дерево (Метод Краскала)"};
 
     QVector<QVector<int>> getAllPointPathsInDepth(const int& adjacencyMatrixSize); // Обход в глубину для всех вершин графа
@@ -106,6 +105,12 @@ private:
     void disableAllButtons(bool);
     void updateMatrixViewCommon(QAbstractItemView::EditTriggers editTrigger, const QVector<QVector<int>>& matrix,
                                 void (MainWindow::*updateFunction)(const QVector<QVector<int>>&), bool needToDisableButtons);
+
+    // отрисовка матрицы
+    void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix);
+    void updateReachabilityMatrix(const QVector<QVector<int>>& adjacencyMatrix);
+    void updateStrongConnectedMatrix(const QVector<QVector<int>>& reachabilityMatrix);
+    void updateShortestPathsMatrix(const QVector<QVector<int>>& shortestPathsMatrix);
 };
 
 class CenterTextDelegate : public QItemDelegate

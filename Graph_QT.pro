@@ -9,12 +9,18 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    algorithms/kruaskalmethod.cpp \
+    algorithms/primmethod.cpp \
+    algorithms/shimbellmethod.cpp \
     main.cpp \
     mainwindow.cpp \
     utils.cpp
 
 HEADERS += \
     Node.h \
+    algorithms/kruaskalmethod.h \
+    algorithms/primmethod.h \
+    algorithms/shimbellmethod.h \
     arrow.h \
     graph.h \
     link.h \
