@@ -98,7 +98,8 @@ private:
 
     int fileReadingLines = 0;
 
-    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица достижимости", "Матрица сильной связности", "Остовное дерево (Метод Прима)"};
+    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица достижимости", "Матрица сильной связности",
+                                     "Остовное дерево (Метод Прима)", "Остовное дерево (Метод Краскала)"};
 
     QVector<QVector<int>> getAllPointPathsInDepth(const int& adjacencyMatrixSize); // Обход в глубину для всех вершин графа
     void switchModes(bool& mode);

@@ -135,7 +135,6 @@ public:
         clearLinks();
 
         // обновление сцены
-//        drawNodes();
         drawLinks({});
 
         // Отправляем сигнал об изменении матрицы смежности
@@ -222,8 +221,7 @@ public:
                                             "Данные:", QLineEdit::Normal,
                                             "", &confirm);
 
-        // При отмене \ пустой строке \ не число
-        if ( !confirm /*|| text == "" || !text.toInt() */)
+        // При отмене
         {
             return;
         }
@@ -615,21 +613,19 @@ public slots:
             qDebug() << path;
 
             // Формирование строки для вывода в statusbar
-            QString *path_text = new QString;
+            QString path_text;
 
-            *path_text = "Ответ на задачу коммивояжера: " + QString::number(path[0] + 1);
+            path_text = "Ответ на задачу коммивояжера: " + QString::number(path[0] + 1);
 
             for (int i = 1; i < path.size(); ++i)
             {
-                *path_text += " -> " +  QString::number(path[i] + 1);
+                path_text += " -> " +  QString::number(path[i] + 1);
             }
 
             // Вычисление веса всего пути и запись в statusbar
-            *path_text += ". Длина вычисленного пути: " + QString::number(calculatePathWeight(path));
+            path_text += ". Длина вычисленного пути: " + QString::number(calculatePathWeight(path));
 
-            emit textToStatusBar(*path_text);
-
-            delete path_text;
+            emit textToStatusBar(path_text);
 
             // Отрисовка найденного пути
             highlightPath(path);
@@ -643,32 +639,32 @@ public slots:
 
             QVector<QVector<int>> paths = shortestPaths(index);
 
-            QString *text = new QString;
+            QString text;
 
-            *text = "Кратчайшие пути из узла во все другие.\n";
+            text = "Кратчайшие пути из узла во все другие.\n";
 
             for (int i = 0; i < paths.size(); ++i)
             {
                 if (paths[i].size() != 1)
                 {
-                    *text += "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ": ";
+                    text += "\nИз " + QString::number(index + 1) + " в " +  QString::number(i+1) + ": ";
 
-                    *text += QString::number(paths[i][0] + 1);
+                    text += QString::number(paths[i][0] + 1);
                     for (int j = 1; j < paths[i].size(); ++j)
                     {
-                        *text += " -> " + QString::number(paths[i][j] + 1);
+                        text += " -> " + QString::number(paths[i][j] + 1);
                     }
-                    *text += ". Стоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
+                    text += ". Стоимость пути: " + QString::number(calculatePathWeight(paths[i])) + "\n";
                 }
             }
 
             QMessageBox msgBox;
             msgBox.setWindowTitle("Алгоритм Дейкстры");
-            msgBox.setInformativeText(*text);
+            msgBox.setInformativeText(text);
             msgBox.adjustSize();
             msgBox.exec();
 
-            delete text;
+            clearNodesColor();
         }
 
         // --------------------------------Алгоритм Флойда---------------------------------------------------------------
@@ -711,6 +707,7 @@ public slots:
             msgBox.adjustSize();
             msgBox.exec();
 
+            clearNodesColor();
         }
 
         // ----------------------------------------Обход в глубину---------------------------------------------------

@@ -36,8 +36,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         // коннект матрицы смежности
         connect(graph, &Graph::adjacencyMatrixChanged, this, &MainWindow::updateAdjacencyMatrix);
 
-        // Отправляем сигнал об изменении матрицы смежности
-//        updateAdjacencyMatrix(graph->getMatrix());
         ui->comboBox_switchMatrix->addItems(matrixItemsTitles);
 
     // --------------------------------------------------------------------------------------------------------------------------
@@ -147,7 +145,6 @@ void MainWindow::onMatrixCellChanged(const QModelIndex &index)
 void MainWindow::updateScene(const QVector<QVector<int>>& matrix)
 {
     graph->drawLinks(matrix);
-//    graph->drawNodes();
 }
 
 void MainWindow::on_delete_node_button_clicked()
@@ -328,6 +325,8 @@ void MainWindow::on_comboBox_switchMatrix_currentIndexChanged(int index)
     case 3:
         updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByPrima(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
         break;
+    case 4:
+        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByKruskal(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
     default:
         break;
     }
