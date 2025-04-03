@@ -231,6 +231,9 @@ void MainWindow::disableAllButtons(bool flag)
     {
         button->setDisabled(flag);
     }
+
+    ui->label_countConnectionForShimbell->hide();
+    ui->comboBox_countConnectionForShimbell->hide();
 }
 
 void MainWindow::on_pushButton_readGrafFromFile_clicked()
@@ -321,33 +324,70 @@ void MainWindow::on_comboBox_switchMatrix_currentIndexChanged(int index)
 {
     switch (index) {
     case 0:
-        updateMatrixViewCommon(QAbstractItemView::AllEditTriggers, graph->getMatrix(), &MainWindow::updateAdjacencyMatrix, false);
+        updateMatrixViewCommon(graph->getMatrix(), &MainWindow::updateAdjacencyMatrix, QAbstractItemView::AllEditTriggers, false);
         break;
     case 1:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getShortestPathsMatrixBuShimbell(graph->getMatrix()), &MainWindow::updateShortestPathsMatrix, false);
+    {
+        updateMatrixViewCommon(graph->getMatrix(), &MainWindow::updateAdjacencyMatrix, QAbstractItemView::AllEditTriggers, false);
+        ui->comboBox_countConnectionForShimbell->clear();
+        for (int i = 0; i < graph->getMatrix().size(); i++) ui->comboBox_countConnectionForShimbell->addItem(QString::number(i+1));
+        int countConnection = ui->comboBox_countConnectionForShimbell->currentIndex();
+        updateMatrixViewCommon(getShortestPathsMatrixByShimbell(graph->getMatrix(), countConnection), &MainWindow::updateShortestPathsMatrix, QAbstractItemView::NoEditTriggers, true);
+        ui->label_countConnectionForShimbell->show();
+        ui->comboBox_countConnectionForShimbell->show();
         break;
+    }
     case 2:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, graph->getMatrix(), &MainWindow::updateReachabilityMatrix, true);
+    {
+        updateMatrixViewCommon(graph->getMatrix(), &MainWindow::updateAdjacencyMatrix, QAbstractItemView::AllEditTriggers, false);
+        ui->comboBox_countConnectionForShimbell->clear();
+        for (int i = 0; i < graph->getMatrix().size(); i++) ui->comboBox_countConnectionForShimbell->addItem(QString::number(i+1));
+        int countConnection = ui->comboBox_countConnectionForShimbell->currentIndex();
+        updateMatrixViewCommon(getShortestPathsMatrixByShimbell(graph->getMatrix(), countConnection, false), &MainWindow::updateShortestPathsMatrix, QAbstractItemView::NoEditTriggers, true);
+        ui->label_countConnectionForShimbell->show();
+        ui->comboBox_countConnectionForShimbell->show();
         break;
+    }
     case 3:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getReachabilityMatrix(graph->getMatrix()), &MainWindow::updateStrongConnectedMatrix, true);
+        updateMatrixViewCommon(graph->getMatrix(), &MainWindow::updateReachabilityMatrix, QAbstractItemView::NoEditTriggers, true);
         break;
     case 4:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByPrima(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
+        updateMatrixViewCommon(getReachabilityMatrix(graph->getMatrix()), &MainWindow::updateStrongConnectedMatrix, QAbstractItemView::NoEditTriggers, true);
         break;
     case 5:
-        updateMatrixViewCommon(QAbstractItemView::NoEditTriggers, getSpanningTreeByKruskal(graph->getMatrix()), &MainWindow::updateAdjacencyMatrix, true);
+    {
+        QVector<QVector<int>> matrix = getSpanningTreeByPrima(graph->getMatrix());
+        updateMatrixViewCommon(matrix, &MainWindow::updateAdjacencyMatrix, QAbstractItemView::NoEditTriggers, true);
+        updateStatusBar("Вес остовного дерева: " + QString::number(getMatrixWeight(matrix)/2));
         break;
+    }
+    case 6:
+    {
+        QVector<QVector<int>> matrix = getSpanningTreeByKruskal(graph->getMatrix());
+        updateMatrixViewCommon(matrix, &MainWindow::updateAdjacencyMatrix, QAbstractItemView::NoEditTriggers, true);
+        updateStatusBar("Вес остовного дерева: " + QString::number(getMatrixWeight(matrix)/2));
+        break;
+    }
     default:
         break;
     }
 }
 
-void MainWindow::updateMatrixViewCommon(QAbstractItemView::EditTriggers editTrigger, const QVector<QVector<int>>& matrix,
-                                        void (MainWindow::*updateFunction)(const QVector<QVector<int>>&), bool needToDisableButtons)
+void MainWindow::updateMatrixViewCommon(const QVector<QVector<int>>& matrix, void (MainWindow::*updateFunction)(const QVector<QVector<int>>&),
+                                        QAbstractItemView::EditTriggers editTrigger,bool needToDisableButtons)
 {
     ui->matrixView->setEditTriggers(editTrigger);
     (this->*updateFunction)(matrix);
     disableAllButtons(needToDisableButtons);
+    ui->statusbar->clearMessage();
+}
+
+
+void MainWindow::on_comboBox_countConnectionForShimbell_currentIndexChanged(int index)
+{
+    bool findMin = ui->comboBox_switchMatrix->currentIndex() == 1;
+    updateMatrixViewCommon(getShortestPathsMatrixByShimbell(graph->getMatrix(), index, findMin), &MainWindow::updateShortestPathsMatrix, QAbstractItemView::NoEditTriggers, false);
+    ui->label_countConnectionForShimbell->show();
+    ui->comboBox_countConnectionForShimbell->show();
 }
 

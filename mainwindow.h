@@ -83,6 +83,8 @@ private slots:
 
     void on_comboBox_switchMatrix_currentIndexChanged(int index);
 
+    void on_comboBox_countConnectionForShimbell_currentIndexChanged(int index);
+
 private:
     Ui::MainWindow *ui;
 
@@ -97,14 +99,15 @@ private:
 
     int fileReadingLines = 0;
 
-    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица минимальных путей (Алгоритм)" , "Матрица достижимости", "Матрица сильной связности",
-                                     "Остовное дерево (Метод Прима)", "Остовное дерево (Метод Краскала)"};
+    QStringList matrixItemsTitles = {"Матрица смежности", "Матрица минимальных путей (Алгоритм Шимбелла)" , "Матрица максимальных путей (Алгоритм Шимбелла)",
+                                     "Матрица достижимости", "Матрица сильной связности", "Остовное дерево (Метод Прима)",
+                                     "Остовное дерево (Метод Краскала)"};
 
     QVector<QVector<int>> getAllPointPathsInDepth(const int& adjacencyMatrixSize); // Обход в глубину для всех вершин графа
     void switchModes(bool& mode);
     void disableAllButtons(bool);
-    void updateMatrixViewCommon(QAbstractItemView::EditTriggers editTrigger, const QVector<QVector<int>>& matrix,
-                                void (MainWindow::*updateFunction)(const QVector<QVector<int>>&), bool needToDisableButtons);
+    void updateMatrixViewCommon(const QVector<QVector<int>>& matrix, void (MainWindow::*updateFunction)(const QVector<QVector<int>>&),
+                                QAbstractItemView::EditTriggers editTrigger, bool needToDisableButtons);
 
     // отрисовка матрицы
     void updateMatrixView(QTableView* tableView, QStandardItemModel* model, const QVector<QVector<int>>& matrix);

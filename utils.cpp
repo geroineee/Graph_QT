@@ -299,3 +299,18 @@ void loadNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes)
     }
     settings.endGroup();
 }
+
+int getMatrixWeight(const QVector<QVector<int>>& matrix)
+{
+    int weight = 0;
+
+    for (int i = 0; i < matrix.size(); i++)
+    {
+        for (int j = 0; j < matrix.size(); j++)
+        {
+            if (i != j) weight += matrix[i][j];
+        }
+    }
+
+    return weight;
+}

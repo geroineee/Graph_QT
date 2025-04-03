@@ -43,4 +43,6 @@ QVector<QVector<int>> loadAdjacencyMatrix(QSettings& settings);
 
 void loadNodeCoordinates(QSettings& settings, const QVector<Node*>& nodes);
 
+int getMatrixWeight(const QVector<QVector<int>>& matrix);
+
 #endif // UTILS_H

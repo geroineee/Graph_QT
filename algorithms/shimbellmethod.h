@@ -4,8 +4,8 @@
 #include <QVector>
 #include <QDebug>
 
-QVector<QVector<int>> getShortestPathsMatrixBuShimbell(const QVector<QVector<int>>& adjacencyMatrix);
+QVector<QVector<int>> getShortestPathsMatrixByShimbell(const QVector<QVector<int>>& adjacencyMatrix, const int& countConnection, const bool& findMin = true);
 
-void specificMatrixProduct(QVector<QVector<int>>& firstMatrix, const QVector<QVector<int>>& secondMatrix);
+QVector<QVector<int>> specificMatrixProduct(const QVector<QVector<int>>& firstMatrix, const QVector<QVector<int>>& secondMatrix, const bool& findMin);
 
 #endif // SHIMBELLMETHOD_H

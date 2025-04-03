@@ -1,19 +1,19 @@
 #include "shimbellmethod.h"
 
 
-QVector<QVector<int>> getShortestPathsMatrixBuShimbell(const QVector<QVector<int>>& adjacencyMatrix)
+QVector<QVector<int>> getShortestPathsMatrixByShimbell(const QVector<QVector<int>>& adjacencyMatrix, const int& countConnection, const bool& findMin)
 {
     QVector<QVector<int>> shortestPathsMatrix = adjacencyMatrix;
 
-    for (int i = 0; i < adjacencyMatrix.size(); i++)
+    for (int i = 0; i < countConnection; i++)
     {
-        specificMatrixProduct(shortestPathsMatrix, adjacencyMatrix);
+        shortestPathsMatrix = specificMatrixProduct(shortestPathsMatrix, adjacencyMatrix, findMin);
     }
 
     return shortestPathsMatrix;
 }
 
-void specificMatrixProduct(QVector<QVector<int>>& firstMatrix, const QVector<QVector<int>>& secondMatrix)
+QVector<QVector<int>> specificMatrixProduct(const QVector<QVector<int>>& firstMatrix, const QVector<QVector<int>>& secondMatrix, const bool& findMin)
 {
     QVector<QVector<int>> matrixProd;
 
@@ -22,27 +22,28 @@ void specificMatrixProduct(QVector<QVector<int>>& firstMatrix, const QVector<QVe
         QVector<int> sumLine;
         for (int j = 0; j < secondMatrix[0].size(); j++)
         {
-            int minElement = 0;
+            int minOrMaxElement = 0;
             for (int k = 0; k < firstMatrix[0].size(); k++)
             {
                 if (firstMatrix[i][k] * secondMatrix[k][j] != 0)
                 {
                     int element = firstMatrix[i][k] + secondMatrix[k][j];
-                    if (minElement == 0 || element < minElement) minElement = element;
+                    if (findMin)
+                    {
+                        if (minOrMaxElement == 0 || element < minOrMaxElement) minOrMaxElement = element;
+                    }
+                    else
+                    {
+                        if (minOrMaxElement == 0 || element > minOrMaxElement) minOrMaxElement = element;
+                    }
                 }
             }
 
-            sumLine.push_back(minElement);
+            sumLine.push_back(minOrMaxElement);
 
         }
         matrixProd.push_back(sumLine);
     }
 
-    for (auto i : matrixProd)
-    {
-        qDebug() << i;
-    }
-    qDebug() << "";
-
-    firstMatrix = matrixProd;
+    return matrixProd;
 }
