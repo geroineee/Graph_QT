@@ -17,7 +17,7 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>11</x>
@@ -215,7 +215,7 @@
           </widget>
          </item>
          <item row="2" column="0">
-          <widget class="QPushButton" name="button_floid">
+          <widget class="QPushButton" name="button_clique">
            <property name="minimumSize">
             <size>
              <width>224</width>
@@ -223,7 +223,7 @@
             </size>
            </property>
            <property name="text">
-            <string>Алгоритм Флойда</string>
+            <string>Клика графа</string>
            </property>
           </widget>
          </item>

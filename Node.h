@@ -14,7 +14,6 @@
 
 class Node : public QObject, public QGraphicsItem
 {
-
 Q_OBJECT
 
 signals:

@@ -391,3 +391,41 @@ void MainWindow::on_comboBox_countConnectionForShimbell_currentIndexChanged(int 
     ui->comboBox_countConnectionForShimbell->show();
 }
 
+void MainWindow::on_button_clique_clicked()
+{
+    auto allMaxCliques = findAllMaxCliques(graph->getMatrix());
+
+    // Подсвечиваем клики на графе
+    graph->highlightPaths(allMaxCliques, 3000);
+
+    QString text;
+
+    if (allMaxCliques.isEmpty())
+    {
+        text = "В графе нет клик (полных подграфов)";
+    }
+    else
+    {
+        text = QString("Максимальные найденые клики:\n\n");
+
+        int cliqueNumber = 1;
+        foreach (const auto& clique, allMaxCliques)
+        {
+            text += QString("%1. ").arg(cliqueNumber++);
+
+            foreach (int node, clique)
+            {
+                text += QString::number(node + 1) + " "; // +1 для человеко-читаемой нумерации
+            }
+            text += "\n";
+        }
+    }
+
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Максимальные клики графа");
+    msgBox.setText(text);
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setMinimumSize(400, 300);
+
+    msgBox.exec();
+}

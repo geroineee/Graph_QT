@@ -3,7 +3,7 @@
 
 #include <QVector>
 
-QVector<int> findMaxClique(const QVector<QVector<int>>& adjacencyMatrix);
+QVector<QVector<int>> findAllMaxCliques(const QVector<QVector<int>>& adjacencyMatrix);
 
 QVector<int> findCliqueRec(const QVector<QVector<int>>& adjacencyMatrix, QVector<int> clique, QVector<int> vertexNotExpandClique);
 

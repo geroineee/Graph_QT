@@ -13,6 +13,7 @@
 #include "zoomablegraphicsview.h"
 #include "utils.h"
 #include "algorithms/kruaskalmethod.h"
+#include "algorithms/clique.h"
 #include "algorithms/primmethod.h"
 #include "algorithms/shimbellmethod.h"
 
@@ -84,6 +85,8 @@ private slots:
     void on_comboBox_switchMatrix_currentIndexChanged(int index);
 
     void on_comboBox_countConnectionForShimbell_currentIndexChanged(int index);
+
+    void on_button_clique_clicked();
 
 private:
     Ui::MainWindow *ui;
